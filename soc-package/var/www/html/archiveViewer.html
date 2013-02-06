@@ -1,0 +1,617 @@
+<!doctype html>
+
+<html>
+   <head>
+      <title>Archive Viewer</title>
+   
+      <style type="text/css">
+         
+         #controls{
+            margin:10px;
+            padding: 5px;
+            text-align: center;
+            background-color: #C0C0C0;
+            height: auto;
+            width: auto;
+            overflow: hidden;
+         }
+         #plot_window{
+            margin:10px;
+            padding: 0;
+         }
+         .plotControls{
+            float: right;
+         }
+         .plot{
+            border: inset;
+         }
+         .clearDiv{
+            float: clear
+         }
+         .inputs{
+            height: 25px;
+         }
+         .hidden{
+            display: none;
+         }
+      </style>
+   </head>
+   
+   <body>
+      <div id="controls">
+         <select class="inputs" id="payload_id" name="payload_i">
+            <option value="null" disabled selected>Payload</option>
+         </select>
+         |
+         <input class="inputs" id="date" name="date" type="text" size="8">
+         </input>
+         |
+         <select class="inputs" id="data_1" name="data_1">
+            <option value="null" disabled selected >Data Type</option>
+            <option value="lc">Light Curves</option>
+            <option value="rc">Rate Counters</option>
+            <option value="mag">Magnetometer</option>
+            <option value="gps">GPS</option>
+            <option value="V">Voltage</option>
+            <option value="C">Current</option>
+            <option value="T">Temperature</option>
+         </select>
+         <select class="inputs" id="data_2" name="data_2">
+         </select>
+         |
+         <select class="inputs" id="x_axis" name="x_axis">
+            <option value="Time">Time</option>
+            <option value="Frames">Frames</option>
+         </select>
+         |
+         Mouse Coordinates
+         <input class="inputs" id="mouseCoords" type="checkbox" checked />
+         |
+         <span class="inputs" id="extraOpts" hidden>
+         Smooth
+         <input class="inputs" id="movingAve" type="checkbox" />
+         |
+         Log Scale
+         <input class="inputs" id="logScale" type="checkbox" />
+         |
+         </span>
+         <button class="inputs" id="draw" name="draw">Add Plot</button>
+      </div>
+
+      <div id="plot_window"></div>
+   
+      <div id="saveImageForm" class="hidden">
+         <form name="saveData" class="hidden" id="save" 
+            method="POST" action="saveImage.php">
+            <input type="textarea" class="hidden" id="imageName" 
+               name="imageName" value="" />
+            <input type="textarea" class="hidden" id="imageData" 
+               name="imageData" value="" />
+         </form>
+      </div>
+
+      <script src="./js/dave-js/dave.js" ></script>
+      <script src="./getFile.js" ></script>
+      
+      <script language="JavaScript" type="text/javascript" >
+         
+         var plot, message, inputs;
+         var plot_cnt = 0;
+
+         function init(){
+            
+            //wait for all of the external files to load
+            if(
+               typeof(Dave_js) == "undefined" ||
+               typeof(getFile) == "undefined"
+            ){
+               setTimeout(init, 100);
+               return;
+            }
+            
+            //configure plotting library
+            Dave_js.setLibRoot("./js/dave-js");
+            Dave_js.loadMod("chart");
+            Dave_js.loadMod("chart_zoom");
+            Dave_js.loadMod("message");
+            Dave_js.loadMod("colorPallet");
+            Dave_js.loadMod("data_filters");
+            
+            //Create an object holding all of the input fields
+            //do any initial settings
+            (function(){
+               inputs = new Array();
+               var input_els = document.getElementsByClassName("inputs");
+               
+               for(var el_i in input_els){
+                  var el = input_els[el_i];
+                  inputs[el.id] = el;
+               }
+               
+               //get today's date in UTC
+               var d = new Date();
+               var y = d.getUTCFullYear().toString().slice(2); 
+               var m = (d.getUTCMonth() + 1).toString();
+               var d = d.getUTCDate().toString();
+
+               //make sure the month and day are two digit
+               if(d < 10 != 0){d = "0" + d;}
+               if(m < 10 != 0){m = "0" + m;}
+
+               //save the date in the input field
+               inputs.date.value = y + "/" + m + "/" + d;
+            })();
+           
+            //get list of all payloads
+            var payloadReq = new getFile();
+            payloadReq.seturl(
+               '/cgi-bin/getPayloadInfo.pl?get=payloads&rand=' +
+               Math.random()
+            );
+            payloadReq.processPage = function(){
+               var pNames = payloadReq.response.split("\n");
+               
+               inputs["payload_id"].innerHTML = 
+                  "<option value='null'>Payload</option>";
+               
+               for(var name_i = 0; name_i < pNames.length; name_i++){
+                  inputs["payload_id"].innerHTML += 
+                     "\n" + 
+                     "<option value=" + pNames[name_i] + " >" + 
+                     pNames[name_i] + 
+                     "</option>";
+               }
+            }
+            payloadReq.sendReq();
+            
+            //add event listeners to controls
+            inputs["data_1"].addEventListener(
+               "change", function(){fillDataMenu(inputs["data_1"].value);}
+            );
+            inputs["draw"].addEventListener(
+               "click", function(){getPlotData();}
+            );
+         }
+         
+         function fillDataMenu(type){
+            var dataSubMenu = document.getElementById("data_2");
+            var menuContent = "";
+            
+            switch(type){
+               case "lc":
+                  menuContent =
+                     "<option value='LC1,LC2,LC3,LC4'>All</option>" +
+                     "<option value='LC1'>LC1</option>" + 
+                     "<option value='LC2'>LC2</option>" + 
+                     "<option value='LC3'>LC3</option>" + 
+                     "<option value='LC4'>LC4</option>";
+
+                  //enable the extra plotting options
+                  inputs.extraOpts.hidden = false;
+
+                  //enable log scale
+                  inputs.logScale.checked = true;
+               break;
+               case "rc":
+                  menuContent = 
+                     "<option value='LowLevel,PeakDet,HighLevel,Interrupt'>" +
+                        "All" +
+                     "</option>" +
+                     "<option value='LowLevel'>Low Level</option>" + 
+                     "<option value='PeakDet'>Peak Detector</option>" + 
+                     "<option value='HighLevel'>High Level</option>" + 
+                     "<option value='Interrupt'>Interrupt</option>";
+
+                  //enable the extra plotting options
+                  inputs.extraOpts.hidden = false;
+
+                  //enable log scale
+                  inputs.logScale.checked = true;
+               break;
+               case "mag":
+                  menuContent =
+                     "<option value='MAG_X_Ave,MAG_Y_Ave,MAG_Z_Ave'>" +
+                        "All" +
+                     "</option>" +
+                     "<option value='MAG_X_Ave'>X</option>" + 
+                     "<option value='MAG_Y_Ave'>Y</option>" + 
+                     "<option value='MAG_Z_Ave'>Z</option>";
+
+                  //disable the extra plotting options
+                  inputs.extraOpts.hidden = true;
+                  
+                  //disable smoothing
+                  inputs.movingAve.checked = false;
+
+                  //disable log scale
+                  inputs.logScale.checked = false;
+               break;
+               case "gps":
+                  menuContent = 
+                     "<option value='GPS_Alt,GPS_Lat,GPS_Lon'>" +
+                        "All" +
+                     "</option>" +
+                     "<option value='GPS_Alt'>Altitude</option>" + 
+                     "<option value='GPS_Lat'>Latitude</option>" + 
+                     "<option value='GPS_Lon'>Longitude</option>";
+
+                  //disable the extra plotting options
+                  inputs.extraOpts.hidden = true;
+
+                  //disable smoothing
+                  inputs.movingAve.checked = false;
+                  
+                  //disable log scale
+                  inputs.logScale.checked = false;
+               break;
+               case "T":
+                  menuContent = 
+                     "<option value='T00_Scint,T01_Mag,T02_ChargeCont," +
+                        "T03_Battery,T04_PowerConv,T05_DPU,T06_Modem," +
+                        "T07_Structure,T08_Solar1,T09_Solar2,T10_Solar3," +
+                        "T11_Solar4,T12_TermTemp,T13_TermBatt,T14_TermCap," +
+                        "T15_CCStat" +
+                     "'>" +
+                        "All" +
+                     "</option>" +
+                     "<option value='T00_Scint'>Scintillator</option>" + 
+                     "<option value='T01_Mag'>Magnetometer</option>" + 
+                     "<option value='T02_ChargeCont'>" +
+                        "Charge Controller" +
+                     "</option>" +
+                     "<option value='T03_Battery'>Battery</option>" + 
+                     "<option value='T04_PowerConv'>Power Converter</option>" + 
+                     "<option value='T05_DPU'>DPU</option>" + 
+                     "<option value='T06_Modem'>Modem</option>" + 
+                     "<option value='T07_Structure'>Structure</option>" + 
+                     "<option value='T08_Solar1'>Solar Panel 1</option>" + 
+                     "<option value='T09_Solar2'>Solar Panel 2</option>" +
+                     "<option value='T10_Solar3'>Solar Panel 3</option>" + 
+                     "<option value='T11_Solar4'>Solar Panel 4</option>" + 
+                     "<option value='T12_TermTemp'>" +
+                        "Terminate Temperature" +
+                     "</option>" + 
+                     "<option value='T13_TermBatt'>" + 
+                        "Terminate Battery" + 
+                     "</option>" + 
+                     "<option value='T14_TermCap'>" + 
+                        "Terminate Capacitor" + 
+                     "</option>" + 
+                     "<option value='T15_CCStat'>" +
+                        "Charge Controller Status" + 
+                     "</option>" ;
+
+                  //disable the extra plotting options
+                  inputs.extraOpts.hidden = true;
+                  
+                  //disable smoothing
+                  inputs.movingAve.checked = false;
+
+                  //disable log scale
+                  inputs.logScale.checked = false;
+               break;
+               case "C":
+                  menuContent = 
+                     "<option value='I00_TotalLoad,I01_TotalSolar," + 
+                        "I02_Solar1,I03_+DPU,I04_+XRayDet,I05_Modem," + 
+                        "I06_-XRayDet,I07_-DPU" +
+                     "'>" +
+                        "All" +
+                     "</option>" +
+                     "<option value='I00_TotalLoad'>Total Load</option>" + 
+                     "<option value='I01_TotalSolar'>" + 
+                        "All Solar Panels" + 
+                     "</option>" + 
+                     "<option value='I02_Solar1'>Solar Panel 1</option>" + 
+                     "<option value='I03_+DPU'>DPU (+5V)</option>" + 
+                     "<option value='I04_+XRayDet'>XRayDet (+5V)</option>" + 
+                     "<option value='I05_Modem'>Modem</option>" + 
+                     "<option value='I06_-XRayDet'>" +
+                        "X-Ray Detector (-5V)" +
+                     "</option>" + 
+                     "<option value='I07_-DPU'>DPU (-5V)</option>";
+
+                  //disable the extra plotting options
+                  inputs.extraOpts.hidden = true;
+                  
+                  //disable smoothing
+                  inputs.movingAve.checked = false;
+
+                  //disable log scale
+                  inputs.logScale.checked = false;
+               break;
+               case "V":
+                  menuContent = 
+                     "<option value='V00_Volt`AtLoad,V01_Battery,V02_Solar1," +
+                        "V03_+DPU,V04_+XRayDet,V05_Modem,V06_-XRayDet," + 
+                        "V07_-DPU,V08_Mag,V09_Solar2,V10_Solar3,V11_Solar4" +
+                     "'>" +
+                        "All" +
+                     "</option>" +
+                     "<option value='V00_VoltAtLoad'>" +
+                        "Voltage at Load" + 
+                     "</option>" + 
+                     "<option value='V01_Battery'>Battery</option>" + 
+                     "<option value='V02_Solar1'>Solar Panel 1</option>" +
+                     "<option value='V09_Solar2'>Solar Panel 2</option>" + 
+                     "<option value='V10_Solar3'>Solar Panel 3</option>" + 
+                     "<option value='V11_Solar4'>Solar Panel 4</option>" +
+                     "<option value='V03_+DPU'>DPU (+5V)</option>" + 
+                     "<option value='V04_+XRayDet'>" + 
+                        "X-Ray Detector (+5V)" + 
+                     "</option>" + 
+                     "<option value='V05_Modem'>Modem</option>" + 
+                     "<option value='V06_-XRayDet'>" + 
+                        "X-Ray Detector (-5V)" + 
+                     "</option>" + 
+                     "<option value='V07_-DPU'>DPU (-5V)</option>" + 
+                     "<option value='V08_Mag'>Magnetometer</option>";
+
+                  //disable the extra plotting options
+                  inputs.extraOpts.hidden = true;
+                  
+                  //disable smoothing
+                  inputs.movingAve.checked = false;
+
+                  //disable log scale
+                  inputs.logScale.checked = false;
+               break;
+               
+               default:
+               break;
+            }
+               dataSubMenu.innerHTML = menuContent;
+         }
+         
+         function getPlotData(){
+            //disable the "Add Plot" until the request is finished
+            inputs.draw.disabled = true;
+            inputs.draw.innerHTML = "Loading...";
+            
+            //format date
+            var date = inputs.date.value.replace(/\//g, "");
+            
+            var dataReq = new getFile();
+            dataReq.seturl(
+               "/soc-nas/payload" + inputs.payload_id.value +
+               "/." + inputs.data_1.value + date +
+               '?rand=' + Math.random()
+            );
+            
+            dataReq.processPage = function(){
+               //create the plot area
+               var plotWin = document.getElementById("plot_window");
+               
+               var newDiv = 
+                  document.createElement("div");
+               newDiv.setAttribute("id", "canvas" + plot_cnt);
+               newDiv.setAttribute("class", "plot");
+               plotWin.insertBefore(newDiv, plotWin.firstChild);
+               
+               //add "Close" button
+               var newButton = document.createElement("button");
+               newButton.setAttribute("class", "plotControls");
+               newButton.innerHTML = "Close";
+               newButton.addEventListener(
+                  "click", function(){plotWin.removeChild(this.parentNode);}
+               );
+               newDiv.appendChild(newButton);
+
+               //add "Save" button
+               newButton = document.createElement("button");
+               newButton.setAttribute("class", "saveButton");
+               newButton.innerHTML = "Save Plot";
+               newButton.addEventListener(
+                  "click", function(){saveImage(this);}
+               
+               //send the data to the plotting library
+               buildPlot(parseData(dataReq.response));
+               dataReq.response = null;
+               
+               //get ready for the next plot
+               plot_cnt++;
+            }
+            dataReq.sendReq();         
+         }
+         
+         function parseData(d){
+            var lastFrame = 0;
+            var lines = d.split("\n");
+            var data = new Object();
+            
+            //set the correct index for the x-axis data (Time = 1, Frames = 0)
+            var x_i = (inputs.x_axis.value == "Time") ? 1 : 0;
+            
+            //create fields in the data object and create a var name ref
+            var line = lines.shift();
+            var fields = line.split(",");
+            var varNames = new Array(fields.length);
+            for(var field_i = 0; field_i < fields.length; field_i++){
+               varNames[field_i] = fields[field_i];
+               data[fields[field_i]] = new Array();
+            }
+            
+            //get first data point
+            line = lines.shift();
+            fields = line.split(",");
+            
+            //get the correct x value
+            data[varNames[x_i]].push(fields[x_i]);
+            
+            //get the y values
+            for(var field_i = 2; field_i < fields.length; field_i++){
+               if(varNames[field_i] != undefined){
+                  data[varNames[field_i]].push(fields[field_i]);
+               }
+            }
+            
+            if(inputs.x_axis.value == "Time"){
+               data.Time[0] = formatTime(data.Time[0]);
+            }
+            lastFrame = fields[0];
+            
+            //parse the data
+            while(lines.length > 1){ //ignore the last line because it is blank
+               line = lines.shift();
+               fields = line.split(",");
+               
+               var gap = fields[0] - lastFrame - 1;
+               
+               //inflate gaps
+               while(gap > 0){
+                  //copy the last good x axis value
+                  data[varNames[x_i]].push(
+                     data[varNames[x_i]][
+                        data[varNames[x_i]].length - 1
+                     ]
+                  );
+                  
+                  //fill gaps for the other fields
+                  for(var field_i = 2; field_i < fields.length; field_i++){
+                     if(varNames[field_i] != undefined){
+                        data[varNames[field_i]].push("--");
+                     }
+                  }
+                  gap--;
+               }
+               
+               //get the x axis value and format the time if needed
+               if(inputs.x_axis.value == "Time"){
+                  data.Time.push(formatTime(fields[1]));
+               }else{
+                  data.Frames.push(fields[0]);
+               }
+               
+               for(var field_i = 2; field_i < fields.length; field_i++){
+                  if(varNames[field_i] != undefined){
+                     //yaxis values
+                     data[varNames[field_i]].push(fields[field_i]); 
+                  }
+               }
+               
+               //save the frame number for the next round
+               lastFrame = fields[0];
+            }
+            
+            //create an array of null values to pad our data array 
+            //out to 24 hours
+            data.extraPadFrames =
+               new Array(
+                  Math.max(0, (86400 - data[varNames[x_i]].length))
+               );
+            
+            return data;
+         }
+         
+         function formatTime(t){
+            var hour, min, sec;
+            
+            //convert from ms to s
+            t /= 1000;
+            //remove any seconds from previous days
+            t %= 86400;
+            //get number of full hours
+            hour = parseInt(t / 3600);
+            //remove full hours from time
+            t %= 3600;
+            //get full minutes
+            min = parseInt(t / 60);
+            //get left over seconds
+            sec = t % 60;
+            
+            return inputs["date"].value + " " + hour + ":" + min + ":" + sec;
+         }
+         
+         function saveImage(canvas){
+           document.getElementById("imageData").value = 
+              canvas.toDataURL();
+           document.getElementById("imageName").value = 
+              "Archive_Viewer_Plot.png";
+           document.forms["save"].submit();
+           document.getElementById("imageData").value="";
+         }
+
+         function buildPlot(d){
+            if(Dave_js.loaded){
+               plot = new Dave_js.chart("plot");
+
+               var chartWidth = 
+                  document.getElementById("controls").offsetWidth - 200;
+               var chartHeight = 300;
+               
+               plot.setOrigin(100, 20);
+               
+               //get a list of variables to print
+               var varList = inputs.data_2.value.split(",");
+               
+               //save each data set
+               for(var var_i in varList){
+                  //filter the data with a 20+/- frame moving average 
+                  if(inputs.movingAve.checked){
+                     d[varList[var_i]] =                       
+                        Dave_js.data_filters.movingAve(20, d[varList[var_i]]);
+                  }
+                  
+                  //add pad frames to make sure we have 
+                  //correct spacing for a 24h plot
+                  plot.setData(
+                     d[inputs.x_axis.value].concat(d.extraPadFrames),
+                     d[varList[var_i]].concat(d.extraPadFrames),
+                     varList[var_i]
+                  );
+               }
+               
+               plot.setChartSize(chartHeight, chartWidth);
+               
+               plot.setCanvasHolder("canvas" + plot_cnt);
+               plot.setLabels(
+                  "Up to 24 Hours of " + inputs.data_2.value +
+                  " from payload " + inputs.payload_id.value + 
+                  " on " + inputs.date.value,
+                  inputs.x_axis.value.substr(0,1).toUpperCase() + 
+                     inputs.x_axis.value.substr(1),
+                  inputs.data_2.value
+               );
+
+               //turn coordinate message on/off
+               plot.setCoordDisp(inputs.mouseCoords.checked); 
+               //plot.setCoordDisp = false; 
+
+               //setup the colors
+               plot.setBackgroundColor("AliceBlue");
+               
+               var dataColors =
+                  new Dave_js.colorPallet("rainbow", varList.length);
+               dataColors.buildPallet();
+               plot.setColor("data", dataColors.getPallet("rgb"));
+               
+               //set other graph options
+               plot.setGrid();
+               plot.setLegend();
+               plot.setType("xy-points");
+               
+               //Log scale if the box is checked
+               if(inputs.logScale.checked){
+                  plot.setScale("log_10");
+               }
+               
+               //draw everything
+               plot.buildPlot();
+            
+               //enable the "Add Plot" button
+               inputs["draw"].disabled = false;
+               inputs["draw"].innerHTML = "Add Plot";
+
+            }else{
+               setTimeout(configPlot, 100);
+            }
+
+            return null;
+         }
+         
+         init();
+
+      </script>
+   
+   </body>
+</html>

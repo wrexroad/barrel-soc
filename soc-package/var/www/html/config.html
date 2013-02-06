@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+   <title>Configurator</title>
+   <style type="text/css">
+   #buttonHolder{
+      text-align:center;
+   }
+   #configArea{
+      position: absolute;
+      bottom: 5px;
+   }
+   </style>
+   <script language="JavaScript">
+      function switchFrame(frame){
+         document.getElementById("configArea").src="/cgi-bin/set" + frame + ".pl";
+      }
+   </script>
+</head>
+
+<body>
+   <div id="buttonHolder">
+      <button onclick="switchFrame('Limits');" >Limits</button>
+   </div>
+   <iframe id="configArea" height="90%" width="98%"></iframe>
+</body>
+
+</html>

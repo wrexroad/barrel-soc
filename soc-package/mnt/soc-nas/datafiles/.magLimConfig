@@ -1,0 +1,182 @@
+{
+   "1A" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1B" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1C" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1D" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1E" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1F" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1G" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1H" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1I" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1J" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1K" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1L" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1M" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1N" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1O" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1P" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1Q" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1R" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1S" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+   "1T" : {
+      "MAG_X_Min" : 0,
+      "MAG_X_Max" : 1,
+      "MAG_Y_Min" : 0,
+      "MAG_Y_Max" : 1,
+      "MAG_Z_Min" : 0,
+      "MAG_Z_Max" : 1,
+   },
+   
+}

@@ -1,0 +1,218 @@
+<!doctype html>
+
+<html>
+
+<head>
+   <style type="text/css">
+         
+         #control_div{
+            margin:10px;
+            padding: 5px;
+            text-align: center;
+            background-color: #C0C0C0;
+            height: auto;
+            width: auto;
+            overflow: hidden;
+         }
+         #map_holder{
+            margin:10px;
+            padding: 0;
+         }
+         #bg_map{
+            display:none;
+         }
+         .closeButton{
+            float: right;
+         }
+         .plot{
+            border: inset;
+         }
+         .clearDiv{
+            float: clear
+         }
+         .inputs{
+            height: 25px;
+         }
+      </style>
+   
+</head>
+
+<body>
+   <div id="control_div">
+      List Payloads (Separate multiples with a space): 
+      <input class="controls" id="payloads" name="date"
+             type="text" size="8" value="all">
+      </input>
+      <br />
+      Start (yy/mm/dd hh:mm): 
+      <input class="controls" id="start_date" 
+            type="text" size="8" value="12/12/01">
+      </input>
+      <input class="controls" id="start_time" 
+            type="text" size="5" value="00:00">
+      </input>
+       |
+      End: 
+      <input class="controls" id="end_date" 
+            type="text" size="8" value="14/06/01">
+      </input>
+      <input class="controls" id="end_time" 
+            type="text" size="5" value="23:59">
+      </input>
+       |
+      <button class="controls" id="draw" name="draw">Draw Map</button>
+   </div>
+   
+   <div id="map_holder"></div>
+
+   
+   <img src="/images/gridMap.jpg" id="bg_map" />
+
+   <script src="./js/dave-js/dave.js" ></script>
+   <script src="./getFile.js" ></script>
+   
+   <script language="JavaScript" type="text/javascript" >
+      //closure for all of the plotting stuff
+      (function(){
+         var plot;
+         
+         init();
+         var controls = getControls();
+         buildPlot();
+         
+         function init(){
+            //wait for all of the external files to load
+            if(
+               typeof(Dave_js) == "undefined" ||
+               typeof(getFile) == "undefined"
+            ){
+               setTimeout(init, 100);
+               return;
+            }
+            
+            //configure plotting library
+            Dave_js.setLibRoot("./js/dave-js");
+            Dave_js.loadMod("chart");
+         };
+         
+         function getControls(){
+            //object to hold all of controls elements
+            var controls = {};
+            
+            //Fill the controls object
+            var control_els = document.getElementsByClassName("controls");
+            
+            for(var el_i in control_els){
+               var el = control_els[el_i];
+               controls[el.id] = el;
+            }
+           
+            //add event listener to control the draw button
+            controls["draw"].addEventListener(
+               "click", function(){getPlotData();}
+            );
+            
+            return controls;
+         }
+         
+         function getPlotData(){
+            //get a list of dates and times
+            var times = {
+               start : {
+                  date :
+                  controls.start_date.value.replace(new RegExp(" |\/", "g"), ""),
+                  time : timeToMs(controls.start_date.value)
+               },
+               end : {
+                  date :
+                  controls.end_date.value.replace(new RegExp(" |\/", "g"), ""),
+                  time : timeToMs(controls.end_date.value)
+               }
+            }
+            
+            //get list of payloads
+            var payloads = controls.payloads.value.split(" ");
+            
+            //get data for all the dates and all the payloads
+            var reqObjs = new Array();
+            var complete = 0; //keeps track of how many gps files have been downloaded
+            for(var pay_i = 0; pay_i < payloads.length; pay_i++){
+               reqObjs[pay_i] = new getFile();
+               reqObjs[pay_i].seturl(
+                  "/cgi-bin/getData.php?" +
+                  "payload=" + payloads[pay_i] + "&" +
+                  "start_date=" + times.start.date + "&" +
+                  "end_date=" + times.end.date + "&" +
+                  "start_time=" + times.start.time + "&" +
+                  "end_time=" + times.end.time + "&" +
+                  "dataType=flight&" +
+                  "dataLoc=/mnt/soc-nas&" +
+                  "rand=" + Math.random()
+               );
+               reqObjs[pay_i].processPage = function(){
+                  var self = this;
+                  var lines = self.response.split("\n");
+                  var lat = new Array();
+                  var lon = new Array();
+                  
+                  for(var line_i = 0; line_i < lines.length; line_i++){
+                     var temp = lines[line_i].split(",");
+                     lat.push(temp[4]);
+                     lon.push(temp[5]);
+                     alert(temp[4] + " " + temp[5]);
+                  }
+                  
+                  plot.setData(lon, lat, lines[0]);
+                  
+                  complete++;
+               }
+               reqObjs[pay_i].sendReq();
+            }
+            
+            waitForLoad();
+            
+            function timeToMs(time){
+               var parts = time.split(":");
+               
+               var ms = ((parts[0] * 3600) + (parts[1] * 60) + parts[2]) * 1000;
+               
+               return ms;
+            }
+            
+            function waitForLoad(){
+               if(complete == payloads.length){
+                  alert("building");
+                  plot.buildPlot();
+               }else{
+                  setTimeout(waitForLoad, 1000);
+               }
+            }
+         }
+         
+         function buildPlot(){
+            //make sure the plotting modules have loaded
+            if(!Dave_js.loaded){
+               setTimeout(buildPlot, 100);
+               return;
+            }
+            
+            var bgImg = document.getElementById("bg_map");
+            
+            plot = new Dave_js.chart("plot");
+            
+            plot.setBackgroundImage("bg_map");
+            plot.setGrid(false);
+            plot.setChartSize(bgImg.width, bgImg.height);
+            
+            plot.setCanvasHolder("map_holder");
+            plot.setColor("data",["green","black"]);
+            plot.setGrid();
+            plot.setLegend();
+            plot.setType("polar-map-south-points");
+            plot.buildPlot();
+         };
+      })();
+   </script>
+</body>
+
+</html>

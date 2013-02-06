@@ -1,0 +1,507 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+   <title>Spectra Viewer</title>
+   
+   <style type="text/css">
+         body{
+            margin:0;
+            padding:0;
+            position:absolute;
+            top:0;
+            bottom:0;
+            left:0;
+            right:0;
+            overflow:auto;
+         }
+         #controlHolder,#plotHolder{
+            margin:5px;
+            padding:5px;
+            position:absolute;
+            top:0;
+            bottom:0;
+            border-width:2px;
+            border-style:solid;
+            border-radius:1em;
+            text-align:center;
+            overflow:auto;
+         }
+         #controlHolder{
+            left:0;
+            right:82%;
+         }
+         #divider{
+            position:absolute;
+            right:75%;
+            left:20%;
+            top:0;
+            bottom:0;
+            float:right;
+            text-align:center;
+            border:dotted;
+         }
+         #plotHolder{
+            right:0;
+            left:18%;
+            float:right;
+            text-align:center;
+         }
+         .plots{
+            margin:10px;
+            padding:5px;
+            width:0px;
+            height:0px;
+            overflow:hidden;
+         }
+         #tooltip{
+            position:absolute;
+            margin:0;
+            padding:0;
+            background-color:#CCCCCC;
+            z-index:1;
+         }
+   </style>   
+   
+   <script language="JavaScript" type="text/javascript" src="/grapher.js" ></script>
+   <script language="JavaScript" type="text/javascript" src="/getFile.js" ></script>
+   <script type='text/javascript'>
+      
+      //define a global control panel object
+      var controlPanel = new controlObj();
+      
+      function init(){
+         //create objects once the page has loaded
+         controlPanel.getElements();
+         controlPanel.setCurrentDate();
+         
+         doSizes();
+      }
+         
+      function doSizes(){
+         //get the plot elements
+         var plots=document.getElementsByClassName("plots");
+         
+         //divide the height of the plot holder by the number of plots and give a small margin
+         var plotHeight=parseInt((document.getElementById("plotHolder").offsetHeight-110)/plots.length);
+         var tbMargin=parseInt((document.getElementById("plotHolder").offsetHeight-110)/plots.length);
+         
+         //give a small boarder around the widths of the plots too
+         var plotWidth=parseInt(document.getElementById("plotHolder").offsetWidth-70);
+         var lrMargin=parseInt(document.getElementById("plotHolder").offsetWidth-70);
+         
+         //set the sizes
+         for(var plot_i=0; plot_i<plots.length; plot_i++){
+            plots[plot_i].style.height=plotHeight+"px";
+            plots[plot_i].style.width=plotWidth+"px";            
+         }
+      }
+      
+      
+      function controlObj(){
+         
+         //create an object to request the current date 
+         this.dateReq = new getFile();
+         this.dateReq.parent=this;
+         
+         //get all the control elements
+         this.getElements=function(){
+            var self = this;
+            
+            //get the control elements
+            self.controlNodes=document.getElementsByClassName("controls");
+            self.controlElements = new Array();
+         
+            //build an associated array of control elements 
+            for(var node_i=0; node_i<self.controlNodes.length; node_i++){
+               self.controlElements[self.controlNodes[node_i].id]=self.controlNodes[node_i];
+            }
+            self.controlNodes=null;//dump the element array
+         }   
+         
+         this.start = function(){//create plot objects and start generating images
+            var self = this;
+            
+            //adjust disabled/enabled buttons 
+            self.controlElements["startButton"].disabled =true;
+            self.controlElements["stopButton"].disabled = false;
+            self.controlElements["liveOn"].disabled=true;
+            self.controlElements["liveOff"].disabled=true;
+            
+            //start data collection
+            self.controlElements["startButton"].disabled=true;
+            
+            //create plot objects
+            var slowplot = new plotObject('slow');
+            var medplot = new plotObject('med');
+            slowplot.parent=self;medplot.parent=self;
+            slowplot.setBarColor("red");
+            medplot.setBarColor("blue");
+            
+            //start generating plots
+            slowplot.getPlotData();
+            medplot.getPlotData();
+         }
+         this.pause = function(){//start or stop getting data, but do not clear current image or destroy objects
+            var self = this;
+            
+            if(self.controlElements["startButton"].disabled==true){self.controlElements["startButton"].value=false;}
+            else if(self.controlElements["startButton"].disabled==true){self.controlElements["startButton"].value=false;}
+         }
+         this.stop = function(){//start or stop translator for a given payload
+            var self = this;
+            
+            self.controlElements["startButton"].disabled = false;
+            self.controlElements["stopButton"].disabled = true;
+            self.controlElements["liveOn"].disabled = false;
+            self.controlElements["liveOff"].disabled = false;
+            
+            //destroy plot objects
+            slowplot=null;
+            medplot=null;
+         }
+         
+         this.setLive = function(){
+            var self = this;
+            
+            if(self.controlElements["liveOn"].checked){
+               self.controlElements["date"].disabled=true;
+               self.controlElements["date"].value="Loading Date...";
+               self.controlElements["numOfLines"].value='1';
+            }
+            else{
+               self.controlElements["date"].disabled=false;
+               self.controlElements["date"].value="";
+               self.controlElements["numOfLines"].value='-1';
+               self.controlElements["numOfLines"].disabled;
+            }
+         }
+         
+         this.setAve = function(){
+            var self = this;
+            
+            if(self.controlElements["aveOff"].checked){
+               self.controlElements["numOfLinesHolder"].hidden=true;
+               self.controlElements["numOfLines"].value=1;
+            }else{
+               self.controlElements["numOfLinesHolder"].hidden=false;
+               self.controlElements["numOfLines"].value=1;
+            }
+         }
+         
+         this.setCurrentDate=function(){
+            var self = this;
+            
+            if(self.controlElements['payload'].value != ''){
+               if(self.controlElements['liveOn'].checked){
+                  self.dateReq.seturl('/soc-nas/payload'+self.controlElements['payload'].value+'/.currentdate?+&rand='+Math.random());
+                  self.dateReq.sendReq(self);
+               }
+               setTimeout(function(){self.setCurrentDate()},5000);
+            }
+            else{
+               self.controlElements['date'].value='';
+               setTimeout(function(){self.setCurrentDate()},5000);
+            }
+         }
+         
+         //create a function that tells how to process the new date
+         this.dateReq.processPage=function(){
+            var self = this;
+            
+            //remove trailing newline character
+            self.response.replace(/(\n|\r)+$/, '');
+            
+            //make sure the response is a 6 digit number and update the "date" field
+            if(self.response.length == 6){
+               self.parent.controlElements['date'].value=self.response;
+               self.response=null;//make sure we get a fresh date next time
+            }
+         }
+      }
+      
+      function plotObject(type){
+         //set some initial values for the members
+         this.type=type;
+         this.parent="";
+         this.labels = new Array();
+         this.counts = new Array();
+         this.barColor="";
+         this.frameGroup = new Array();
+         
+         //accessors
+         this.setBarColor=function(color){
+            this.barColor=color;
+         }
+         this.setFrameGroup = function(label,frame){
+            this.frameGroup[0]=label;
+            this.frameGroup[1]=frame;
+         }
+         
+         //create page request object
+         this.lineReq = new getFile();
+         this.lineReq.parent=this;
+         
+         this.getSpeed=function(){
+            return (30.3-(this.parent.controlElements["speed"].value*(30/100)))*1000;
+         }
+         
+         //gathers control settings and starts data collection/plotting
+         this.getPlotData=function(){
+            var self=this;
+            
+            if(self.parent.controlElements['startButton'].disabled == true &&
+               self.parent.controlElements['payload'].value != '' &&
+               self.parent.controlElements['numOfLines'].value != '' &&
+               self.parent.controlElements['date'].value != '' &&
+               self.type != ''){
+               //set the data path and start requesting data
+               self.lineReq.seturl('/cgi-bin'+
+                                '/getSpectra.pl?'+
+                                'payload='+self.parent.controlElements['payload'].value+'&'+
+                                'numOfLines='+self.parent.controlElements['numOfLines'].value+'&'+
+                                'date='+self.parent.controlElements['date'].value+'&'+
+                                'energyCal='+self.parent.controlElements['energyCal'].value+'&'+
+                                'countMultiplier='+self.parent.controlElements['countMultiplier'].value+'&'+
+                                'type='+self.type+'&'+
+                                'rand='+Math.random());
+               self.lineReq.sendReq();  
+            }
+         }
+         
+         this.doPlot=function(){
+            var self=this;
+            
+            self.plot = new Object();
+            
+               
+               //do log10 scaling
+               if(self.parent.controlElements["logOn"].checked){self.plot.scale="log-10";}
+               
+               self.plot.type="xyhist";
+               
+               self.plot.hist=true;
+               //self.plot.xCoordBoxName="binBox"+self.type;
+               //self.plot.yCoordBoxName="binBox"+self.type;
+               self.plot.plotBoxName="plotBox-"+self.type;
+               
+               self.plot.origX=60;
+               self.plot.origY=20;
+               self.plot.canvasHeight=document.getElementById("plotBox-"+self.type).offsetHeight;
+               self.plot.canvasWidth=document.getElementById("plotBox-"+self.type).offsetWidth;
+               self.plot.chartMargin=100;
+               
+               self.plot.ticLength=5;
+               self.plot.borderColor='Black';
+               self.plot.backgroundColor='#CCCCCC';
+               self.plot.barColor=new Array();
+               self.plot.barColor[0]=self.barColor;
+               
+               self.plot.pointColor = new Array(self.barColor);
+               self.plot.pointSize=4;
+               self.plot.activePointColor='#66FF00';
+               
+               self.plot.textColor='Black';
+               self.plot.cssFont='14px sans-serif';
+               self.plot.canvasName="canvas-"+self.type;
+               self.plot.title=self.type+
+                           " spectra of payload "+
+                           self.parent.controlElements["payload"].value+
+                           " on "+
+                           self.parent.controlElements["date"].value+
+                           ", frame group = "+
+                           self.frameGroup[1]+
+                           " ("+
+                           self.parent.controlElements["numOfLines"].value+
+                           " line moving average)";
+               
+               self.plot.yVars = new Array();
+               self.plot.yVars = new Array();
+               self.plot.yVars[0] = self.labels;
+               self.plot.yVals = new Array();
+               self.plot.yVals[0] = new Array();
+               self.plot.yVals[0] = self.counts;
+               self.plot.yAxisLabel=self.parent.controlElements["countMultiplier"].value+" x counts/sec/keV";
+               self.plot.yMax=self.parent.controlElements["MaxCounts"].value;
+               self.plot.yMin=self.parent.controlElements["MinCounts"].value;
+               self.plot.ySkippedTics="";
+               self.plot.xSkippedTics=parseInt((20*self.plot.yVals[0].length)/(self.plot.canvasWidth-self.plot.chartMargin));
+               self.plot.xAxisLabel="Energy (keV)";
+               
+               self.plot.xVals = self.labels;
+            drawPlot(self.plot);
+            
+            //set up another plot if we are still running
+            if(self.parent.controlElements["startButton"].disabled==true){
+               setTimeout(function(){self.getPlotData()},self.getSpeed());
+            }
+         }
+         
+         //define the processPage function  of getFile so we know what to do with the returned data
+         this.lineReq.processPage=function(){
+            var self=this;
+            var zoom_i=0;
+            var lines = new Array();
+            
+            if(self.parent.lineReq.response){
+               self.parent.lineReq.response.replace(/(\n|\r)+$/, '');
+               lines = self.parent.lineReq.response.split("\n");
+               if(lines[0]){self.parent.labels=lines[0].split(",");}
+               if(lines[1]){self.parent.counts=lines[1].split(",");}
+               
+               //set the frame counter display
+               self.parent.setFrameGroup(self.parent.labels.shift(),self.parent.counts.shift());
+               
+               
+               //pop and shift out the values you dont want (min/max energy limits)
+               if(self.parent.parent.controlElements[self.parent.type+"MinEnergy"].value){
+                  var minEnergy = parseFloat(self.parent.parent.controlElements[self.parent.type+"MinEnergy"].value);//force the value to be a number
+                  while(self.parent.labels[0] < minEnergy && self.parent.labels.length>0){
+                   self.parent.labels.shift();
+                   self.parent.counts.shift();  
+                  }
+               }
+               if(self.parent.parent.controlElements[self.parent.type+"MaxEnergy"].value){
+                  var maxEnergy = parseFloat(self.parent.parent.controlElements[self.parent.type+"MaxEnergy"].value);
+                  while(self.parent.labels[self.parent.labels.length-1] > maxEnergy && self.parent.labels.length>0){
+                   self.parent.labels.pop();
+                   self.parent.counts.pop();  
+                  }
+               }
+               self.parent.doPlot();
+            }
+            
+            //resize the plots if needed
+            doSizes();
+            
+            //dump old values
+            lines=null;
+            self.parent.lineReq.response = null;
+         }
+      }
+      
+      function resize(element,add){
+         if(add){
+            element.onmousemove=function(e){//add event listener
+               //get mouse coords
+               if (e.layerX || e.layerX == 0) { // Firefox
+                  var mouseX = e.layerX;
+               } 
+               else if (e.offsetX || e.offsetX == 0) { // Opera
+                  var mouseX = e.offsetX;
+               }
+               if (e.layerY || e.layerY == 0) { // Firefox
+                  var mouseY = e.layerY;
+               } 
+               else if (e.offsetY || e.offsetY == 0) { // Opera
+                  var mouseY = e.offsetY;
+               }
+               
+               //get divs
+               var plotHolder=document.getElementById("plotHolder");
+               var divider=document.getElementById("divider");
+               var controlHolder=document.getElementById("controlHolder");
+               
+               plotHolder.style.left=parseInt(plotHolder.offsetLeft+mouseX+5)+"px";
+               controlHolder.style.right=parseInt(controlHolder.offsetRight-mouseX-5)+"px";
+               divider.style.left=parseInt(divider.offsetLeft-mouseX-1)+"px";
+               divider.style.right=parseInt(divider.offsetRight+mouseX+1)+"px";
+            }
+         }else{element.onmousemove=null;}//remove event listener
+      }
+      
+      function doToolTip(add,element){
+         if(add==true){
+            //create the message container
+            var tooltip = document.createElement('div');
+            tooltip.setAttribute("id","tooltip");
+            document.getElementsByTagName("body")[0].appendChild(tooltip);
+            
+            element.onmousemove=function(e){
+               //update message
+               tooltip.innerHTML=parseInt((30.3-(30/100)*element.value)*100)/100;
+               
+               //get mouse coords
+               if (e.layerX || e.layerX == 0) { // Firefox
+                  var mouseX = e.layerX;
+               } 
+               else if (e.offsetX || e.offsetX == 0) { // Opera
+                  var mouseX = e.offsetX;
+               }
+               if (e.layerY || e.layerY == 0) { // Firefox
+                  var mouseY = e.layerY;
+               } 
+               else if (e.offsetY || e.offsetY == 0) { // Opera
+                  var mouseY = e.offsetY;
+               }
+               //move div
+               tooltip.style.top=(mouseY+15)+"px";
+               tooltip.style.left=(mouseX+15)+"px";
+            }
+         }else{
+            element.onmousemove=null;
+            element.style.cursor="default";
+            var tooltip=document.getElementById("tooltip");
+            document.getElementsByTagName("body")[0].removeChild(tooltip);
+         }
+      }
+      
+   </script>
+</head>
+
+<body onload="init();">
+   <div id="controlHolder" class="controls">
+      <p>Payload: <input id="payload" class="controls" type="text" size="10" onblur="controlPanel.setCurrentDate();" /></p>
+      <br />
+      <div class="controls" id="liveDataHolder">
+         <b>Data: </b><br />
+         Live<input id="liveOn" class="controls" name="liveSwitch" type="radio" onclick="controlPanel.setLive();" checked disabled /> 
+         Archived<input id="liveOff" class="controls" name="liveSwitch" type="radio" onclick="controlPanel.setLive();" disabled />
+         <div id="dateHolder" class="controls" ><b>Date?</b> <input class="controls" id="date" type="text" size="15" value='' disabled /> </div>
+      </div>
+      <br />
+      <div id="speedHolder" class="controls" hidden>
+         <b>Speed:</b><br />
+         <input id="speed" class="controls" type="range" min="1" max="100" value="90" onmouseover="doToolTip(true,this);" onmouseout="doToolTip(false,this);" />
+      </div>
+      <br />
+      <div id="logHolder" class="controls">
+         Log<input id="logOn" class="controls" name="logSwitch" type="radio" checked /> 
+         Lin<input id="logOff" class="controls" name="logSwitch" type="radio" /> 
+      </div>
+      <br />
+      <div id="aveHolder" class="controls">
+         <b>Moving Average: </b><br />
+         On<input id="aveOn" class="controls" name="averageSwitch" type="radio" onclick="controlPanel.setAve();" /> 
+         Off<input id="aveOff" class="controls" name="averageSwitch" type="radio" onclick="controlPanel.setAve();" checked /> 
+         <div id="numOfLinesHolder" class="controls" hidden> How Many? <input id="numOfLines" class="controls" type="text" size="5" value="1" /> </div>
+      </div>
+      <br />
+      
+      <b>Energy Calibration</b><br />
+      keV / ADC Bin:<input id="energyCal" class="controls" type="text" size="5" value="2.4" /><br />
+      <b>Energy Calibration</b><br />
+      Count Multiplier:<input id="countMultiplier" class="controls" type="text" size="5" value="1000" /><br />
+      <b>Y-Axis Limits</b><br />
+      Min Counts:<input id="MinCounts" class="controls" type="text" size="5" /><br />
+      Max Counts:<input id="MaxCounts" class="controls" type="text" size="5" /><br />
+      <b>Slow Spectrum Limits</b><br />
+      Min Energy(keV):<input id="slowMinEnergy" class="controls" type="text" size="5" /><br />
+      Max Energy(keV):<input id="slowMaxEnergy" class="controls" type="text" size="5" /><br />
+      <b>Medium Spectrum Limits</b><br />
+      Min Energy(keV):<input id="medMinEnergy" class="controls" type="text" size="5" /><br />
+      Max Energy(keV):<input id="medMaxEnergy" class="controls" type="text" size="5" /><br />
+      <br />
+      <input id="startButton" class="controls" type="button" value="Start" onclick="controlPanel.start();" />
+      <input id="pauseButton" class="controls" type="button" value="Pause" onclick="controlPanel.pause();" disabled />
+      <input id="stopButton" class="controls" type="button" value="Stop" onclick="controlPanel.stop();" disabled />
+   </div>
+   
+   <!-- <div id="divider" onclick="resize(this,true);" onmouseover="this.style.background='black'" onmouseout="this.style.background='white';resize(this,false);"></div> -->
+   
+   <div id="plotHolder">
+      <div id="plotBox-slow" class="plots"></div>
+      <br />
+      <div id="plotBox-med" class="plots"></div>
+   </div>
+</body>
+</html>

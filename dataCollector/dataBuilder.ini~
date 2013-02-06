@@ -1,0 +1,3 @@
+servers = http://soc1.dartmouth.edu
+payloads = 1T
+outputRoot = test

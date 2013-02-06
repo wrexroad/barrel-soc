@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<HTML>
+   <head>
+      <title>Admin Panel</title>
+      <style type="text/css">
+         #nav{
+            text-align:center;
+         }
+      </style>
+      
+      <script language="JavaScript" type="text/javascript" src="/getFile.js" ></script>
+      <script language="JavaScript" type="text/javascript">
+         //check password
+         function passCheck(pass){
+            pageData=new getFile();
+            pageData.seturl("/cgi-bin/checkPass.pl?"+pass);
+            pageData.processPage = function(){
+               document.getElementById('body').innerHTML=pageData.response;
+            }
+            pageData.sendReq();
+         };
+      </script>
+   </head>
+   
+   <body id="body">
+      <form action="get" method="/cgi-bin/adminPanel.pl">
+         Password:<input id="password" type="password" /><input type="button" value="Submit"  />
+      </form>
+   </body>
+</HTML>

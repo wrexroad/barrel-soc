@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Web Server Load Test</title>
+</head>
+
+<body>
+   <p>Number of users: <input id="numOfUsers" type="text" value="1" /> </p>
+   <p>Delay between pageloads: <input id="delay" type="text" value="30" /> (s)</p>
+   <p>Request Types:
+   &nbsp &nbsp &nbsp New Data:<input id="newDat" checked class="testSel" type="checkbox" /> 
+   &nbsp &nbsp &nbsp 1 Hour Plot:<input id="onePlot" class="testSel" type="checkbox" /> 
+   &nbsp &nbsp &nbsp 6 Hour Plot:<input id="sixPlot" class="testSel" type="checkbox" /></p>
+   
+   <button id="go" onclick="loadTest.controls.start();">Go</button>
+   <button id="stop" onclick="loadTest.controls.stop();">Stop</button>
+
+   <br />
+   <textarea id="log"></textarea>
+   
+   <script language="JavaScript" type="text/javascript" src="/getFile.js" ></script>
+   <script language="JavaScript" type="text/javascript" src="/js/webLoadTest.js" ></script>
+</body>
+</html>

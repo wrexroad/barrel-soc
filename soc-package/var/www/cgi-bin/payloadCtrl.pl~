@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+use SOC_config qw(%configVals);
+use SOC_funcs qw(getDirListing);
+
+print "Content-Type: text/html \n\n";
+
+my $input="";
+my @input=();
+my %input=();
+my $key="";
+my $value="";
+my $list="";
+my @list=();
+my @line=();
+my @dates=();
+my $dates="";
+
+#figure out what job to do
+$input = $ENV{'QUERY_STRING'};
+@input = split(/&/, $input);
+foreach(@input){
+	($key,$value)=split(/=/, $_);
+	$input{$key}=$value;
+}
+
+if(!$input{"command"}){
+	print "No Command Specified!\n" and die;
+}elsif($input{"command"} eq "fetch"){
+	$list=`ps aux | grep \"payload=$input{payload}\"`;
+	@dates=getDirListing($configVals{mocNas}."/payload".$input{payload}."/","dir");
+	
+	if($list =~ /perl/){
+		print 'fetch!!on!!'."@dates";
+	}
+	else{
+		print 'fetch!!off!!'."@dates";
+	}
+}elsif($input{"command"} eq "start"){
+	`nohup perl updater.pl payload=$input{payload} startdate=$input{startdate} > $configVals{socNas}/payload$input{payload}/.sysout 2> $configVals{socNas}/payload$input{payload}/.sysout < /dev/null &`;
+	print "started!!";
+}
+elsif($input{"command"} eq "stop"){
+	$list=`ps aux | grep \"payload=$input{payload}\"`;
+	@list=split(/\n/,$list);
+	foreach(@list){
+		@line=split(/\s+/,$_);
+		`kill $line[1]`;
+	}
+	print "stopped!!";
+}

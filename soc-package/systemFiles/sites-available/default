@@ -1,0 +1,43 @@
+<VirtualHost *:80>
+	ServerAdmin wrexroad@ucsc.edu
+	
+	ServerName soc.dev
+
+	DocumentRoot /var/www/soc/html
+	<Directory />
+		Options FollowSymLinks
+		AllowOverride None
+	</Directory>
+	<Directory /var/www/soc/html>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride None
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ScriptAlias /cgi-bin/ /var/www/soc/cgi-bin/
+	<Directory "/var/www/soc/cgi-bin">
+		AllowOverride None
+		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+	ErrorLog ${APACHE_LOG_DIR}/error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    #Alias /doc/ "/usr/share/doc/"
+    #<Directory "/usr/share/doc/">
+    #    Options Indexes MultiViews FollowSymLinks
+    #    AllowOverride None
+    #    Order deny,allow
+    #    Deny from all
+    #    Allow from 127.0.0.0/255.0.0.0 ::1/128
+    #</Directory>
+
+</VirtualHost>

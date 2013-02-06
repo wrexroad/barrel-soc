@@ -1,0 +1,29 @@
+<html>
+<body>
+<div id="div" style="border:inset;width:60px;height:60px;overflow:hidden">
+<img style="position:relative" src="smiley.gif" id="smiley" alt="Smiley face" width="60" height="60" />
+</div>
+<input type="button" onclick="resize();" />
+
+<script type='text/javascript'>
+function resize(){
+
+var smiley=document.getElementById('smiley');
+
+if(!smiley.style.top){
+smiley.style.top="0px";
+smiley.style.bottom="0px";
+smiley.style.left="0px";
+smiley.style.right="0px";
+}
+
+smiley.width=50+parseInt(document.getElementById('smiley').width);
+smiley.height=50+parseInt(document.getElementById('smiley').height);
+smiley.style.top=(parseInt(smiley.style.top)-25)+"px";
+smiley.style.bottom=(parseInt(smiley.style.bottom)+25)+"px";
+smiley.style.left=(parseInt(smiley.style.left)-25)+"px";
+smiley.style.right=(parseInt(smiley.style.right)+25)+"px";
+}
+</script>
+</body>
+</html>

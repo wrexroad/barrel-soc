@@ -1,0 +1,28 @@
+;Load test configuration file
+
+;Name of Payload
+payloadNum=1;
+
+;Number of bytes per frame
+frameLength=214;
+
+;Number of seconds to pause between each frame output
+frameSpeed=1;
+
+;Output directory (. for current directory)
+outputDir=.;
+
+;Input file name
+inputFile=sample.bar;
+
+;Fraction of frames with bad checksums
+badCSProb=0.01;
+
+;Fraction of frames that result in dropped calls
+dropCallProb=0.002;
+
+;Dropped call gap duration (seconds)
+dropCallGap=40;
+
+;Fraction of dropped calls that result in truncated frames
+truncFrameProb=0.2;

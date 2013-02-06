@@ -1,0 +1,7 @@
+public class dataBuilder{
+   public static void main(String[] args){ 
+      dataCollector levelZero = new dataCollector();
+      levelZero.addRepo("http://soc1.dartmouth.edu/moc-nas/barrel");
+      levelZero.getData();
+   }
+}

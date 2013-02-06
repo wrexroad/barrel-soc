@@ -1,0 +1,120 @@
+import java.io.*;
+
+public class dataProducts{
+   
+   //create the object that will fetch the remote data files
+   private static dataCollector dataPull = new dataCollector();
+   
+   private static String currentDate;
+   private static String[] payloads;
+   private static String currentPayload;
+   
+   public static void main(String[] args){
+      
+      //ensure there is a date set
+      if(args[1] != null){
+         setDate(args[1]);
+      }else{
+         System.out.println("No Date Provided");
+         System.exit(0);
+      }
+      
+      //check for and read the ini file
+      File testDir = new File(args[0]);
+      if(testDir.exists()){
+         readIni(args[0]);
+      }else{
+         System.out.println("Now configuration file specified.");
+         System.exit(0);
+      }
+      
+      //for each payload, read the list of data files on each server, 
+      //then download the files
+      for(String payload_i : payloads){   
+         
+         //set working payload
+         setPayload(payload_i);
+         
+         //read each repository and build a list of data file urls
+         dataPull.getFileList();
+         
+         //download each file after the url list is made
+         dataPull.getFiles();
+         
+         //create object to convert the data files to a level 0 file
+         try{
+            levelZero lZero = new levelZero();
+            lZero.processFiles();
+            lZero.done();
+         }catch(IOException ex){
+            System.out.println(ex.getMessage());
+         }
+      }
+   }
+   
+   private static void readIni(String filePath){
+      try{
+         FileReader fr = new FileReader(filePath);
+         BufferedReader iniFile = new BufferedReader(fr);
+         
+         String line;
+         while( (line = iniFile.readLine()) != null){
+            String[] setting = line.split("=");
+            
+            //make sure there is exactly 1 "="
+            if(setting.length == 2){
+               //remove leading and trailing whitespace from key and value
+               setting[0] = setting[0].trim();
+               setting[1] = setting[1].trim();
+               
+               switch (setting[0]){
+                  //Determine what payloads to read
+                  case "outputRoot":
+                     dataPull.setOutputRoot(setting[1].trim());
+                     break;
+               
+                  case "payloads": 
+                     payloads = setting[1].split(",");
+                     for(String payload_i : payloads){
+                        payload_i = payload_i.trim();
+                     }
+                     break;
+                  
+                  //Add data file servers to the list
+                  case "servers": 
+                     String[] servers = setting[1].split(",");
+                     for(String server_i : servers){
+                        server_i = server_i.trim();
+                        dataPull.addServer(server_i);
+                     }
+                     break;   
+                     
+                  default: break;
+               }
+            }
+         }
+         
+         iniFile.close();
+      }catch(IOException ex){
+         System.out.println(ex.getMessage());
+      }
+   }
+   
+   public static void setPayload(String pay){
+      currentPayload = pay;
+   }
+   public static void setDate(String date){
+      currentDate = date;
+   }
+   public static String getPath(){
+      return dataPull.getPath();
+   }
+   public static String getPayload(){
+      return currentPayload;
+   }
+   public static String getDate(){
+      return currentDate;
+   }
+   
+   
+}

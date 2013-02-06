@@ -1,0 +1,77 @@
+/*
+levelZero.java v0.2 12.06.28
+
+Description:
+   Copies each data file, byte by byte, to a day-long data file.
+   Rejects short frames, long frames, and frames with bad checksums.
+
+v0.2
+   -Added buffered and write for binary files 
+   
+v0.1
+   -Just copies the files into a day-long file. 
+   -Does not check for valid frames
+
+Planned Changes: 
+   -Error checking for short, long, and back checksum frames
+*/
+
+
+import java.io.*;
+
+public class levelZero{
+   private static String syncWord = "";
+   private static int frameLength = 214;
+   
+   private String dirPath;
+   private String[] fileList;
+   private String workingFrame;
+   
+   private FileInputStream readFile;
+   private FileOutputStream writeFile;
+   
+   public levelZero() throws IOException{
+      //get directory listing
+      dirPath = dataProducts.getPath();
+      File dir = new File(dirPath);
+      fileList = dir.list();
+      
+      //create output file
+      writeFile = new FileOutputStream(dirPath + "/level.0");
+   }
+   
+   public void processFiles() throws IOException{
+      System.out.println("Generating day-long file...");
+      
+      for(String file_i : fileList){
+         if(file_i != "dailyManifest"){
+            try{
+               readFile = new FileInputStream(dirPath + "/" + file_i);
+               
+               int c;
+               while ((c = readFile.read()) != -1) {
+                  writeFile.write(c);
+               }
+            }finally {
+               if (readFile != null) {
+                  readFile.close();
+               }
+            }
+         }
+      }
+   }
+   
+   public void getFrame(){
+      
+   }
+   
+   //close the output file when done
+   public void done() throws IOException{
+      if (writeFile != null) {
+         writeFile.close();
+      }
+      System.out.println(
+         "Completed Level 0 for payload " + dataProducts.getPayload()
+      );
+   }
+}

@@ -1,0 +1,300 @@
+<html>
+<head>
+<title>Device Trouble Reporting</title>
+
+<script language="JavaScript" type="text/javascript" src="/pageReq.js" ></script>
+
+<script language='javascript'>
+   function divObject(divID){
+      
+      this.divID=divID;
+      this.divElement=document.getElementById(this.divID);
+      this.minHeight=0;
+      this.currentHeight=parseFloat(this.divElement.style.height);
+      this.dispName="";
+      
+      this.setMinHeight = function(height){
+         this.minHeight=height;
+      }
+      
+      this.setCurrentHeight=function(height){
+         this.currentHeight=height;
+         this.divElement.style.height=height+"px";
+      }
+      
+      this.hide = function(){
+         var direction=document.getElementById(this.divID+" Hide").value;
+         if(direction=="Show "+this.divID){
+            document.getElementById(this.divID+" Hide").value="Hide "+this.divID;
+            move(newSub,search);
+         }
+         else if(direction=="Hide "+this.divID){
+            document.getElementById(this.divID+" Hide").value="Show "+this.divID;
+            move(search,newSub);
+         }
+      }
+      this.submit = function(){
+         //get username and password for acess
+         var uname = document.getElementById("admin_name").value;
+         var pass = document.getElementById("admin_pass").value;
+         
+         //get a list of form nodes for this object and request a php page. 
+         this.formValues=document.getElementById(this.divID).getElementsByClassName("form");
+         this.formQuery="form="+this.divID+"&"+"u="+uname+"&";
+         
+         //get values from each form element
+         for(var i=0;i<this.formValues.length;i++){
+            this.formQuery=this.formQuery+this.formValues[i].id+"="+this.formValues[i].value+"&";
+         }
+         
+         //xmlhttprequest via external js file
+         pageReq("/cgi-bin/database.php?"+this.formQuery+"p="+pass+"&rand="+Math.random());
+         
+         //clear form elements if new value was entered
+         if(this.divID=="New Submission"){
+            for(var i=0;i<this.formValues.length;i++){
+               this.formValues[i].value=""
+            }
+         }
+      }
+   }
+   
+   function pageLoad(data){
+      if(data.indexOf("Search Results")>-1){
+         document.getElementById("queryResults").innerHTML=data;
+      }
+      else{
+         document.getElementById("message").innerHTML=data;
+      }
+   }
+
+   function showRecord(id){
+      var div=document.getElementById('recordDiv');
+      
+      var boxHeight=parseFloat(window.innerHeight);
+      var boxWidth=parseFloat(window.innerWidth);
+      div.style.top=boxHeight*0.15+"px";
+      div.style.height=boxHeight*0.7+"px";
+      div.style.left=boxWidth*0.15+"px";
+      div.style.width=boxWidth*0.7+"px";
+      
+      boxWidth = parseFloat(document.getElementById('recordDiv').style.width);
+      document.getElementById("cond_holder").style.width=(boxWidth/2)-50;
+      document.getElementById("prob_holder").style.width=(boxWidth/2)-50;
+      document.getElementById("fix_holder").style.width=(boxWidth/2)-50;
+      
+      document.getElementById('id_holder').value=document.getElementById("id"+id).innerHTML;
+      document.getElementById('date_holder').value=document.getElementById("date"+id).innerHTML;
+      document.getElementById('device_holder').value=document.getElementById("device"+id).innerHTML;
+      document.getElementById('sn_holder').value=document.getElementById("sn"+id).innerHTML;
+      document.getElementById('user_holder').value=document.getElementById("user"+id).innerHTML;
+      document.getElementById('resolved_holder').value=document.getElementById("resolved"+id).innerHTML;
+      document.getElementById('cond_holder').value=document.getElementById("cond"+id).innerHTML;
+      document.getElementById('prob_holder').value=document.getElementById("prob"+id).innerHTML;
+      document.getElementById('fix_holder').value=document.getElementById("fix"+id).innerHTML;
+      
+      div.style.display='block';
+   }
+   
+   function alterRecord(){
+      //get username and password for admin
+      var uname = document.getElementById("admin_name").value;
+      var pass = document.getElementById("admin_pass").value;
+      
+      //get new record values
+      var id = document.getElementById('id_holder').value;
+      var date = document.getElementById('date_holder').value;
+      var device = document.getElementById('device_holder').value;
+      var sn = document.getElementById('sn_holder').value;
+      var user = document.getElementById('user_holder').value;
+      var resolved = document.getElementById('resolved_holder').value;
+      var cond = document.getElementById('cond_holder').value;
+      var prob = document.getElementById('prob_holder').value;
+      var fix = document.getElementById('fix_holder').value;
+      
+      var query="form=update"+
+                  "&u="+uname+
+                  "&p="+pass+
+                  "&id="+id+
+                  "&date="+date+
+                  "&device="+device+
+                  "&sn="+sn+
+                  "&user="+user+
+                  "&resolved="+resolved+
+                  "&cond="+cond+
+                  "&prob="+prob+
+                  "&fix="+fix+
+                  "&rand="+Math.random();
+      pageReq("/cgi-bin/database.php?"+query);
+      search.submit();   
+   }
+   
+   function deleteRecord(id){
+      //get username and password for admin
+      var uname = document.getElementById("admin_name").value;
+      var pass = document.getElementById("admin_pass").value;
+      
+      pageReq("/cgi-bin/database.php?form=delete&u="+uname+"&p="+pass+"&id="+id+"&rand="+Math.random());
+      search.submit();
+   }
+   
+   function changeInputElement(menu){
+      var index=menu.selectedIndex;
+      var value=menu.options[index].value;
+      if (value=="device_type"){
+         document.getElementById("searchTermHolder").innerHTML='<select class="form" id="value">'+
+            '<option>Type</option>'+
+            '<option>Scintillator</option>'+
+            '<option>Magnetometer</option>'+
+            '<option>DPU</option>'+
+            '<option>EDI</option>'+
+            '<option>Modem</option>'+
+            '<option>DC/DC</option>'+
+            '<option>Charge Controller</option>'+
+            '<option>Harness</option>'+
+            '<option>PV</option>'+
+            '<option>Terminate</option>'+
+            '<option>Payload</option>'+
+            '<option>GSE</option>';
+      }
+      else if(value=="all"){
+         document.getElementById("searchTermHolder").innerHTML='';
+      }
+      else{
+         document.getElementById("searchTermHolder").innerHTML='Terms:<input class="form" id="value" type="text" />';
+      }
+   }
+   
+   function move(growDiv,shrinkDiv){
+      var stepSize=20;
+      var delay=5;
+      
+      //make sure the divider is not already moving.
+      if (this.timerID){window.clearTimeout(this.timerID)};
+      
+      growDiv.setCurrentHeight(growDiv.currentHeight+stepSize);
+      shrinkDiv.setCurrentHeight(shrinkDiv.currentHeight-stepSize);
+      
+      var diff=Math.abs(shrinkDiv.currentHeight-shrinkDiv.minHeight);
+      if (diff>=stepSize){this.timerID=setTimeout(function(){move(growDiv,shrinkDiv)}, 50);}
+      else{
+            growDiv.setCurrentHeight((window.innerHeight-shrinkDiv.minHeight));
+            shrinkDiv.setCurrentHeight(shrinkDiv.minHeight-10);
+         }
+   }
+
+   function init(){
+      //Create div objects
+      newSub = new divObject("New Submission");
+      search = new divObject("Search Box");
+      
+      //set object sizes
+      hideButtonHeight=parseFloat(document.getElementById("New Submission Hide").style.height);
+      newSub.setMinHeight(hideButtonHeight+15);
+      newSub.setCurrentHeight(350);
+      search.setMinHeight(parseFloat(window.innerHeight)-360);
+      search.setCurrentHeight(parseFloat(window.innerHeight)-360);
+      
+      //set textarea sizes
+      var boxWidth = parseFloat(window.innerWidth);
+      document.getElementById("cond").style.width=(boxWidth/2)-50;
+      document.getElementById("prob").style.width=(boxWidth/2)-50;
+      document.getElementById("fix").style.width=(boxWidth/2)-50;
+   }
+
+</script>
+<head>
+
+<body onload="init();">
+
+   <div id="recordDiv" style="border:inset; background-color:#DDDDDD; display:none; overflow:auto; position:absolute; width:500px; height:500px; z-index:2;">
+      <input type="button" value="close" style="float:right" onclick="document.getElementById('recordDiv').style.display='none'" />
+      <br />
+      
+      ID:<input id="id_holder" class="showForm" type="text" /> |
+      Name:<input id="user_holder" class="showForm" type="text" /> |
+      Date:<input id="date_holder" class="showForm" type="text" /> 
+      <br />
+      
+      Device Type:<input id="device_holder" class="showForm" type="text" />
+      SN:<input id="sn_holder" class="showForm" type="text" /> |
+      Resolved? <input id="resolved_holder" class="showForm" type="text" /> 
+      <br />
+      
+      <table>
+         <tr><td>Description of Conditions:</td><td>Description of Problem:</td></tr>
+         <tr><td><textarea id="cond_holder" class="showForm" rows=5></textarea></td><td><textarea id="prob_holder" class="showForm" rows=5></textarea></td></tr>
+         <tr><td>Resolution:</td></tr>
+         <tr><td><textarea id="fix_holder" class="showForm" rows=5></textarea></td><td><input type="button" value="Save Changes*" onclick="alterRecord();" /></td></tr>
+      </table>
+      
+   </div>
+   
+   
+   <div id="New Submission" style="overflow:auto; border:inset; position:absolute; margin:0px; top:0px; left:0px; right:0px">
+      <form>
+         <input id="New Submission Hide" type="button" value="Hide New Submission" style="height:25px;" onclick="newSub.hide();" />
+         Admin Name:<input id="admin_name" type="text" value="guest" /> |
+         Admin Password:<input id="admin_pass" type="password" value="guest" />
+         <br />
+         
+         <strong>New Record:</strong>
+         <br />
+         Name:<input class="form" id="name" type="text" /> |
+         Date:<input class="form" id="date" type="text" /> |
+         Device Type:<select class="form" id="device_type">
+               <option>Type</option>
+               <option>Scintillator</option>
+               <option>Magnetometer</option>
+               <option>DPU</option>
+               <option>EDI</option>
+               <option>Modem</option>
+               <option>DC/DC</option>
+               <option>Charge Controller</option>
+               <option>Harness</option>
+               <option>PV</option>
+               <option>Terminate</option>
+               <option>Payload</option>
+               <option>GSE</option>
+            </select>|
+         SN:<input class="form" id="sn" type="text" /> |
+         Further Action Needed? <select class="form" id="action"><option value=""></option><option value="Yes">Yes</option><option value="No">No</option></select> |
+         <br />
+         
+         <table>
+            <tr><td>Description of Conditions:</td><td>Description of Problem:</td></tr>
+            <tr><td><textarea class="form" id="cond" rows=5></textarea></td><td><textarea class="form" id="prob" rows=5></textarea></td></tr>
+            <tr><td>Resolution:</td><td>&nbsp</td></tr>
+            <tr><td><textarea class="form" id="fix" rows=5></textarea></td><td><input type="button" value="Submit" onclick="newSub.submit();" /></td></tr>
+         </table>
+      </form>
+      <div id="message"></div>
+   </div>
+   
+   <div id="Search Box" style="overflow:auto; border:inset; position:absolute; margin:0px; bottom:0px; left:0px; right:0px">
+      <strong>Search:</strong>
+      <br/>
+      
+      <form>
+         <div style="float:left">
+            Field:<select class="form" name="key" id="key" onchange="changeInputElement(this.form.key);">
+               <option value="all">Show All</option>
+               <option value="id">ID</option>
+               <option value="date">Date</option>
+               <option value="device_type">Device Type</option>
+               <option value="sn">SN</option>
+               <option value="resolved">Resolved?</option>
+               <option value="problem">Problem</option>
+               <option value="user_name">Submitter's Name</option>
+            </select>
+         </div>
+         
+         <div id="searchTermHolder" style="float:left">
+         </div>
+         <input id="submitSearch" type="button" value="Search" onclick="search.submit()" />
+      </form>
+      
+      <div id="queryResults"></div>
+   </div>
+
+</body>

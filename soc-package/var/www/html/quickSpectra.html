@@ -1,0 +1,237 @@
+<!DOCETYPE html>
+<html>
+   <head>
+      <title>Quicklook Spectrum Images</title>
+      
+      <style>
+         #header{
+            background-color: white;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: auto;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+            z-index: 999;
+         }
+         #spacer{
+            position:relative;
+         }
+         #imgWin{
+            text-align: center;
+            position: relative;
+            width: 100%;
+            height: auto;
+            padding: 0;
+            margin: 0;
+         }
+         #title{
+            font-size: 20px;
+            font-weight: bold;
+         }
+         button{
+            padding: 0;
+            margin: 0;
+         }
+      </style>
+   </head>
+
+   <body>
+      <div id="header">
+         <div id="title">Quicklook Spectra for </div>
+         <button id="back_button" class="control" 
+            onclick="controls.back();">
+            &lt;--
+         </button>
+         <input id="date" type="date" class="control" 
+            onchange="controls.getImg();" />
+         <select id="period" class="control" onchange="controls.getImg();">
+            <option value="24">All Day</option>
+            <option value="00">0000 - 0600UT</option>
+            <option value="06">0600 - 1200UT</option>
+            <option value="12">1200 - 1800UT</option>
+            <option value="18">1800 - 2400UT</option>
+         </select>
+         <input id="sspc" name="type" type="radio" class="control" 
+            checked onclick="controls.getImg();">
+            sspc
+         </input>
+         <input id="fspc" name="type" type="radio" class="control"
+            onclick="controls.getImg();">
+            fspc
+         </input>
+         <button id="next_button" class="control" 
+            onclick="controls.forward();">
+            --&gt;
+         </button>
+      </div>
+      <div id="spacer"></div>
+      <div id="imgWin">
+         <img id="output" class="control" src="" hidden />
+      </div>
+      
+      <script>
+         //resize the spacer to match the fixed header
+         (function(){
+            var spacer = document.getElementById("spacer");
+            var header = document.getElementById("header");
+            var height = header.offsetHeight;
+            spacer.style.height = height + "px";
+         })();
+         //create an object to hold all of the control methods
+         var controls = function(){
+            //create object literal of control elements indexed by their id
+            var elements = function(){
+               var el_obj = new Object();
+               var el = document.getElementsByClassName("control");
+               for(var i = 0; i < el.length; i++){
+                  el_obj[el[i].id] = el[i];
+               }
+             
+               return el_obj;
+            }();
+
+            //set event listeer to unhide the image on load
+            elements.output.onload = 
+               function(){
+                  //make sure the image element is visible
+                  elements.output.hidden = false;
+               };
+
+            //set initial date
+            (function(){
+               var d = new Date();
+               //set the date to UT yesterday
+               d.setUTCDate(d.getUTCDate() - 1);
+               //set the value of the date element
+               elements.date.value = getDateStamp(d); 
+            })();
+
+            //get initial image
+            getImg();
+
+            //
+            //private functions
+            //
+            function getDateStamp(d){
+               //get date components
+               var year = d.getUTCFullYear();
+               var month = d.getUTCMonth() + 1;
+               var day = d.getUTCDate();
+
+               //make sure the day and month have two digits
+               if((month / 10) < 1){month = "0" + month;}
+               if((day / 10) < 1){day = "0" + day;}
+          
+               //set the element's value
+               return year + "-" + month + "-" + day; 
+            }
+
+            function changeDay(days){
+               //create a date object 
+               var dParts = elements.date.value.split("-");
+               
+               //create date object from parts
+               var d = new Date(dParts[0], dParts[1] - 1, dParts[2]);
+               
+               //add the number of days
+               d.setDate(d.getDate() + days);
+               
+               //set the new value to the date element
+               elements.date.value = getDateStamp(d);
+            }
+            
+            //
+            //returned methods for paging through and pulling down plots
+            //
+            function back(){
+               //move to the next time period
+               switch(elements.period.value){
+                  case "00":
+                     elements.period.value = "18";
+                     changeDay(-1);
+                  break;
+                  case "06":
+                     elements.period.value = "00";
+                  break;
+                  case "12":
+                     elements.period.value = "06";
+                  break;
+                  case "18":
+                     elements.period.value = "12";
+                  break;
+                  case "24":
+                     changeDay(-1);
+                  break;
+                  default: break;
+               }
+
+               getImg();
+            }
+            
+            function forward(){
+               //move to the next time period
+               switch(elements.period.value){
+                  case "00":
+                     elements.period.value = "06";
+                  break;
+                  case "06":
+                     elements.period.value = "12";
+                  break;
+                  case "12":
+                     elements.period.value = "18";
+                  break;
+                  case "18":
+                     elements.period.value = "00";
+                     changeDay(1);
+                  break;
+                  case "24":
+                     changeDay(1);
+                  break;
+                  default: break;
+               }
+               
+               getImg();
+            }
+            
+            function getImg(){
+               var server = 
+                  "http://barrel.ssl.berkeley.edu/";
+                  
+               var path = 
+                  "soc-nas/data_products/quicklook_spectra/";
+
+               //hide the image before loading
+               elements.output.hidden = true;
+               
+               //figure out if we are getting a 6 or 24h plot
+               var period, suffix;
+               if(elements.period.value == "24"){
+                  period = "24h";
+                  suffix = ".png";
+               }
+               else{
+                  period = "06h";
+                  suffix = "_" + elements.period.value + ".png";
+               }
+
+               //figure out if we want fspc or sspc
+               var type;
+               if(elements.fspc.checked){type = "fspc";}
+               else{type = "sspc";}
+               
+               elements.output.src = 
+                  server + path + type + "/png" + period + "/" + type + 
+                  "QL_" + elements.date.value.replace(/-/g, "") + suffix;
+            }
+               
+            return {
+               "back" : back,
+               "forward" : forward,
+               "getImg" : getImg
+            };
+            }();
+      </script>
+   </body>
+</html>

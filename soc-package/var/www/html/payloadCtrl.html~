@@ -1,0 +1,240 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+   <title>SOC Control</title>
+   
+   <style type="text/css">
+         body{
+            position:absolute;
+            top:1px;
+            bottom:1px;
+            left:1px;
+            right:1px;
+         }
+         body>nav{
+            padding:1em;
+            margin:1em;
+            float:left;
+            text-align:center;
+            border-width:2px;
+            border-style:solid;
+            border-radius:1em;
+            width:auto;
+            height:auto;
+            overflow:hidden;
+         }
+         body>div{
+            padding:1em;
+            margin:1em;
+            float:left;
+            border-width:2px;
+            border-style:solid;
+            border-radius:1em;
+            width:auto;
+            height:auto;
+            overflow:hidden;
+         }
+         .messages{
+            overflow:hidden;
+            resize:both;
+         }
+   </style>   
+   
+   <script language='javascript'>
+      //define AJAX objects
+         //controls the various functions of payloadCtrl.pl
+         sendCommand = new reqObject();
+            sendCommand.setType("command");
+         getCurrentDate = new reqObject();
+            getCurrentDate.setType("currentDate");
+         getLastFile = new reqObject();
+            getLastFile.setType("lastFile");
+         getLog = new reqObject();
+            getLog.setType("log");
+         getMesg = new reqObject();
+            getMesg.setType("mesg");
+      
+      function fetcher(){//get status of translator for a given payload and return list of possible start dates
+         var payload=document.getElementById('payloadField').value;
+         
+         sendCommand.setReqPath("cgi-bin/payloadCtrl.pl?command=fetch&payload="+payload+"&rand="+Math.random());
+         sendCommand.pageRequest();
+         
+         //clear all fields
+         document.getElementById("mesgBox").innerHTML="";
+         document.getElementById("logBox").innerHTML="";
+         document.getElementById("lastRead").innerHTML="Current File:";
+         document.getElementById("workingDate").innerHTML="Current Working Date:";
+      }
+      function starter(command){//start or stop translator for a given payload
+         var payload=document.getElementById('payloadField').value;
+         var startdate=document.getElementById('startDateMenu').value;
+         sendCommand.setReqPath("cgi-bin/payloadCtrl.pl?command="+command+"&payload="+payload+"&startdate="+startdate+"&rand="+Math.random());
+         sendCommand.pageRequest();
+         waiter();
+      }
+      function getData(){//update all fields
+         var payload=document.getElementById('payloadField').value;
+         var rand = Math.random();
+         
+         getCurrentDate.setReqPath("soc-nas/payload"+payload+"/.currentdate"+"?rand="+rand);
+         getCurrentDate.pageRequest();
+         
+         getLastFile.setReqPath("soc-nas/payload"+payload+"/.lastRead"+"?rand="+rand);
+         getLastFile.pageRequest();
+         
+         getLog.setReqPath("soc-nas/payload"+payload+"/.translog"+"?rand="+rand);
+         getLog.pageRequest();
+         
+         getMesg.setReqPath("soc-nas/payload"+payload+"/.sysout"+"?rand="+rand);
+         getMesg.pageRequest();
+         
+         //pause before updating again
+         waiter();
+      }
+      
+      //check if the "Start" button was pressed and call getData() as needed
+      function waiter(){
+         if(document.getElementById("startPayload").disabled == true && document.getElementById("stopPayload").disabled == false && document.getElementById("payloadField").value != ""){
+            setTimeout(getData,3000);
+         }
+         else if(document.getElementById("stopPayload").disabled==true){
+            setTimeout(waiter,3000);
+         }
+      }
+      
+      function reqObject(){
+         this.type="";
+         this.reqPath="";
+         
+         this.setType=function(type){
+            this.type=type;
+         }
+         
+         this.setReqPath=function(reqPath){
+            this.reqPath=reqPath;
+         }
+         
+         this.pageRequest=function(){
+            var self=this;
+            var xmlhttp=false;
+            /*\@cc_on \@*/
+            /*\@if (\@_jscript_version >= 5)
+            // JScript gives us Conditional compilation, we can cope with old IE versions.
+            // and security blocked creation of the objects.
+            try {
+               xmlhttp=new ActiveXObject("Msxml2.XMLHTTP");
+            }catch (e) {
+               try {
+                  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+               } catch (E) {
+                  xmlhttp=false;
+               }
+            }
+            \@end \@*/
+            if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+               try {
+                  xmlhttp = new XMLHttpRequest();
+               } catch (e) {
+                  xmlhttp=false;
+               }
+            }
+            if (!xmlhttp && window.createRequest) {
+               try {
+                  xmlhttp=window.createRequest();
+               } catch (e) {
+                  xmlhttp=false;
+               }
+            }
+          
+            if (xmlhttp){
+               xmlhttp.open("GET", self.reqPath, true);
+               xmlhttp.onreadystatechange=function(){
+                  if(xmlhttp.readyState==4){
+                     self.response=xmlhttp.responseText;
+                     self.processPage();
+                  }
+               }  
+            }else{
+               window.alert("Your browser does not support XMLHTTPREQUEST objects. Can not display plot.");
+               return false;
+            }
+            xmlhttp.send(null);
+         }
+         this.processPage = function(){
+            var self=this;
+            if(self.type=="command"){
+               var respArray = new Array();
+               respArray = self.response.split("!!");
+               if(respArray[0]=="started"){
+                  document.getElementById('startPayload').disabled=true;
+                  document.getElementById('stopPayload').disabled=false;
+                  fetcher();
+               }
+               else if(respArray[0]=="stopped"){
+                  document.getElementById('stopPayload').disabled=true;
+                  document.getElementById('startPayload').disabled=false;
+                  fetcher();
+               }
+               else if(respArray[0]=="fetch"){
+                  if(respArray[1]=="on"){
+                     document.getElementById('startPayload').disabled=true;
+                     document.getElementById('stopPayload').disabled=false;
+                  }
+                  else if(respArray[1]=="off"){
+                     document.getElementById('stopPayload').disabled=true;
+                     document.getElementById('startPayload').disabled=false;
+                  }
+                  var dates = respArray[2].split(" ");
+                  var dateString="";
+                  while(dates.length>0){
+                     dateString=dateString+'<option>'+dates.pop()+'</option>';
+                  }
+                  startDateMenu=document.getElementById('startDateMenu').innerHTML=dateString;
+               }
+            }
+            else if(self.type=="currentDate"){
+               document.getElementById("workingDate").innerHTML="Current Working Date: "+self.response;
+            }
+            else if(self.type=="lastFile"){
+               var splitMark=self.response.indexOf("\n");
+               document.getElementById("lastRead").innerHTML="Current File:"+self.response.substring(0,splitMark);
+            }
+            else if(self.type=="log"){
+               document.getElementById("logBox").innerHTML=self.response;
+            }
+            else if(self.type=="mesg"){
+               document.getElementById("mesgBox").innerHTML=self.response;
+            }
+         }
+      }
+   </script>
+</head>
+
+<body onload="waiter(); //get initial values of main fields">
+   <nav id="payloadSelectDiv">
+      <p>Payload: <input id="payloadField" type="text" size="10" /></p>
+      <input type="button" value="Fetch Payload Info" onclick="fetcher();" />
+      <br />
+      <p>Start Date: <select id="startDateMenu"></select></p>
+      <input type="button" id="startPayload" value="Start Payload" onclick="starter('start');" disabled /><input type="button" id="stopPayload" value="Stop Payload" onclick="starter('stop');" disabled />
+   </nav>
+   
+   <div id="contentArea">
+      <div id="workingDate"></div>
+      <div id="lastRead"></div>
+      <div id="lastMod"></div>
+      <br />
+      <div id="logArea">
+         Log:
+         <br />
+         <textarea class="messages" id="logBox" cols="70" rows="10"></textarea>
+      </div>
+      <div id="mesgArea">
+         System Messages:
+         <br />
+         <textarea class="messages" id="mesgBox" cols="70" rows="10"></textarea>
+      </div>
+   </div>
+</body>
+</html>
