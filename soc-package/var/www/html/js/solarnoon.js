@@ -414,8 +414,15 @@ var solarnoon = (function(){
      while (solNoonLocal >= 1440.0) {
        solNoonLocal -= 1440.0;
      }
-     document.getElementById("SolNoon").value = timeString(solNoonLocal, 3)
-     document.getElementById("SolMid").value = timeString(solNoonLocal-720, 3)
+
+      if(solNoonLocal + 720 <= 144.0){
+         var solMidLocal = solNoonLocal + 720;
+      }else{
+         var solMidLocal = solNoonLocal - 720;
+      }
+
+      document.getElementById("SolNoon").value = timeString(solNoonLocal, 2);
+      document.getElementById("SolMid").value = timeString(solMidLocal, 2);
    }
 
 
