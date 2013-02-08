@@ -414,15 +414,16 @@ var solarnoon = (function(){
      while (solNoonLocal >= 1440.0) {
        solNoonLocal -= 1440.0;
      }
+     if (solNoonLocal + 720 <= 1440.0){
+       var solMidLocal = solNoonLocal + 720
+     } else {
+       var solMidLocal = solNoonLocal - 720
+     }     
 
-      if(solNoonLocal + 720 <= 144.0){
-         var solMidLocal = solNoonLocal + 720;
-      }else{
-         var solMidLocal = solNoonLocal - 720;
-      }
+     document.getElementById("SolNoon").value = timeString(solNoonLocal, 2)
+     document.getElementById("SolMid").value = timeString(solMidLocal, 2)
 
-      document.getElementById("SolNoon").value = timeString(solNoonLocal, 2);
-      document.getElementById("SolMid").value = timeString(solMidLocal, 2);
+ 
    }
 
 
