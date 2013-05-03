@@ -728,7 +728,14 @@ sub completeFrame{
 		foreach my $var (sort keys %savedData){
 			print OUTPUT "\t".'"'.$var.'": "'.$savedData{$var}.'",'."\n";
 		}
-		print OUTPUT "\t".'"magOfB": "'.sqrt($savedData{"bx"}**2+$savedData{"by"}**2+$savedData{"bz"}**2).'",'."\n";
+		print OUTPUT 
+         "\t".'"magOfB": "' . 
+         sqrt(
+            $savedData{"MAG_X"} ** 2 + 
+            $savedData{"MAG_Y"} ** 2 + 
+            $savedData{"MAG_Z"} ** 2
+         ) . 
+         '",'."\n";
 		print OUTPUT "}\n";
 	close OUTPUT;
 	
