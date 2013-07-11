@@ -141,7 +141,7 @@ CSSSTYLES
 	
 print "</head>\n";
 
-print "<body onLoad=\"swapFrame('/cgi-bin/quicklook.pl','graphs');\">\n";
+print "<body onLoad=\"swapFrame('/cgi-bin/newData.pl','newData');\">\n";
 
 print << "STATSBANDIV";
 	<div id="statsBanDiv">
@@ -153,7 +153,6 @@ print << "BUTTONSDIV";
 	<div id="buttonsDiv">
 	
 		<center>
-		<input type="button" value="Graphs" onclick="swapFrame('/cgi-bin/quicklook.pl','graphs');" />
 		<input type="button" value="Live Data" onclick="newDataPayload=payloads[0];swapFrame('/cgi-bin/newData.pl','newData');" />	
 		<!-- <input type="button" value="Spectra Viewer" onclick="swapFrame('/spectra.html','newData');" />	-->
 		<input type="button" value="Maps" onclick="swapFrame('/cgi-bin/maps.pl','maps');" />
