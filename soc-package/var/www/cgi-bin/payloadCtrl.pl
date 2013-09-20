@@ -77,7 +77,7 @@ if(!$input{"command"}){
    close LIST;
    
    #start the payload
-   `nohup perl updater.pl payload=$input{payload} startdate=$input{startdate} > $configVals{socNas}/payload$input{payload}/.sysout 2> $configVals{socNas}/payload$input{payload}/.sysout < /dev/null &`;
+   `nohup perl updater.pl payload=$input{payload} startdate=$input{startdate} mod40_Offset=$input{mod40_Offset} > $configVals{socNas}/payload$input{payload}/.sysout 2> $configVals{socNas}/payload$input{payload}/.sysout < /dev/null &`;
    print "started!!\n";
    
 }elsif($input{"command"} eq "stop"){
