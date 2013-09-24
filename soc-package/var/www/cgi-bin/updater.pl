@@ -20,7 +20,7 @@ sub init{
 	#create an initial time for the timout timer
 	$fileObject{'timeoutStartTime'} = time();
 	
-	#create a cross reference of subcoms to variabl names
+	#create a cross reference of subcoms to variable names
 	our %varNames = ();
 	foreach my $type (keys %dataTypes){
       $varNames{$type} = ();
@@ -44,16 +44,60 @@ sub init{
 	
 	#set the first working date
 	$fileObject{'currentDate'}=$fileObject{'startdate'};
-
-	#Initialize folder and data files
+   
+   #Make sure the output directories exist
 	unless(-d $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/'){
 		mkdir $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/'
 		or print "Could not create payload directory" . $! and die;
 	}
 	unless(-d $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/raw/'){
 		mkdir $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/raw/'
-		or print "Could not create raw file directory" . $! and die;;
+		or print "Could not create raw file directory" . $! and die;
 	}
+
+   #check if things should be started mid-day
+   if($fileObject{'midday'}){
+      #the program was restarted midday, pick up where it left off
+
+      #first make sure there is a good starting point
+      open
+         DATE,
+         $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.currentdate'
+      ;
+      if($fileObject{'currentDate'} ne chomp <DATE>){
+         #There is a date mismatch, start at the beginning of the requested day
+         clearFiles();
+      }
+      close DATE;
+      
+      #the program will pick up where it left off using the old status files.
+      
+      writetolog('Resuming previous day.', 1);
+   }else{
+      #Starting from the begining of the day so create new status and data files
+      clearFiles();
+   }
+
+	writetolog('Date set to '.$fileObject{'currentDate'}, 1);
+	
+	#create directory listing
+	our @filelist=();
+	@filelist =
+      getDirListing(
+         $configVals{'mocNas'} . '/payload' . $fileObject{'payload'}.
+            '/' . $fileObject{'currentDate'} . '/dat/', 'file', 'pkt'
+      ) or die
+         'Could not read file list (' .
+            $configVals{'mocNas'} . '/payload'.$fileObject{'payload'} .
+            '/'.$fileObject{'currentDate'}.'/dat/) for payload ' .
+            $fileObject{'payload'} . '!' . "\n" . $!;
+   
+   #get first set of limits
+   getLimits();
+}
+
+sub clearFiles{
+	#Initialize folder and data files
 	writeFile(
       $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.translog'
    );
@@ -100,22 +144,7 @@ sub init{
       $fileObject{'currentDate'}
    );
 	
-	writetolog('Date set to '.$fileObject{'currentDate'}, 1);
-	
-	#create directory listing
-	our @filelist=();
-	@filelist =
-      getDirListing(
-         $configVals{'mocNas'} . '/payload' . $fileObject{'payload'}.
-            '/' . $fileObject{'currentDate'} . '/dat/', 'file', 'pkt'
-      ) or die
-         'Could not read file list (' .
-            $configVals{'mocNas'} . '/payload'.$fileObject{'payload'} .
-            '/'.$fileObject{'currentDate'}.'/dat/) for payload ' .
-            $fileObject{'payload'} . '!' . "\n" . $!;
-   
-   #get first set of limits
-   getLimits();
+
 }
 
 sub mainLoop{
