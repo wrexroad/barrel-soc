@@ -1001,22 +1001,22 @@ sub completeFrame{
 	#print the .newdata file
 	open OUTPUT, 
       ">".$configVals{socNas}."/payload".$fileObject{payload}."/.newdata";
-		print OUTPUT "{\n";
+		print OUTPUT "{";
 		foreach my $var (sort keys %savedData){
-			print OUTPUT "\t".'"'.$var.'": "'.$savedData{$var}.'",'."\n";
+			print OUTPUT '"' . $var . '":"' . $savedData{$var} . '",';
 		}
 		print OUTPUT 
-         "\t".'"magOfB": "' . 
+         '"magOfB":"'. 
          sqrt(
             $savedData{"bx"} ** 2 + 
             $savedData{"by"} ** 2 + 
             $savedData{"bz"} ** 2
-         ) . '",' . "\n";
-		print OUTPUT "}\n";
+         ) . '",';
+		print OUTPUT "}";
 	close OUTPUT;
 	
 	#Write next line of the gps coordinate file
-	if(abs($savedData{'frameNumber'}-$savedData{'oldFrame'})>900){
+	if(abs($savedData{'frameNumber'} - $savedData{'oldFrame'}) > 900){
 		open OUTPUT, 
          ">>" . $configVals{'socNas'} . '/payload' . $fileObject{payload} . 
             '/.flightpath';
