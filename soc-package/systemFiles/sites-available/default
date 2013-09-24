@@ -1,22 +1,22 @@
 <VirtualHost *:80>
 	ServerAdmin wrexroad@ucsc.edu
 	
-	ServerName soc.dev
+	ServerName soc
 
-	DocumentRoot /var/www/soc/html
+	DocumentRoot /var/www/html
 	<Directory />
 		Options FollowSymLinks
 		AllowOverride None
 	</Directory>
-	<Directory /var/www/soc/html>
+	<Directory /var/www/html>
 		Options Indexes FollowSymLinks MultiViews
 		AllowOverride None
 		Order allow,deny
 		allow from all
 	</Directory>
 
-	ScriptAlias /cgi-bin/ /var/www/soc/cgi-bin/
-	<Directory "/var/www/soc/cgi-bin">
+	ScriptAlias /cgi-bin/ /var/www/cgi-bin/
+	<Directory "/var/www/cgi-bin">
 		AllowOverride None
 		Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
 		Order allow,deny

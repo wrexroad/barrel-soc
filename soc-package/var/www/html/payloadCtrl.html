@@ -79,11 +79,17 @@
       function starter(command){//start or stop translator for a given payload
          var payload = document.getElementById('payloadField').value;
          var startdate = document.getElementById('startDateMenu').value;
+         
+         //figure out the mod40 offset
+         var mod40_Offset = 
+            document.getElementById('fcRollover').checked ? 32 : 0;
+
          sendCommand.setReqPath("cgi-bin/payloadCtrl.pl?" + 
             "command=" + command + 
             "&payload=" + payload + 
             "&startdate=" + startdate + 
             "&site=" + document.domain + 
+            "&mod40_Offset=" + mod40_Offset + 
             "&rand=" + Math.random()
          );
          sendCommand.pageRequest();
@@ -284,6 +290,8 @@
          onclick="starter('start');" disabled />
       <input type="button" id="stopPayload" value="Stop Payload" 
          onclick="starter('stop');" disabled />
+      <br />
+      Has FC Rolled Over?<input type="checkbox" id="fcRollover" />
    </nav>
    
    <div id="contentArea">

@@ -692,8 +692,9 @@ Delay:
             var hr = "";
             var minZero = "";
             var secZero = "";
-            
-            parsedData.Time = parseInt(parseFloat(parsedData.Time) / 1000); //convert from ms 
+
+            //convert from ms 
+            parsedData.Time = parseInt(parseFloat(parsedData.Time) / 1000); 
             parsedData.Time = parsedData.Time % 86400; 
             hr = parseInt(parsedData.Time / 3600);
             parsedData.Time = parsedData.Time % 3600; 

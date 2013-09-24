@@ -1,0 +1,99 @@
+Installation instruction for BARREL SOC.
+rev130920
+
+NOTE: These instructions are written assuming you have a clean install of 
+Ubuntu Server LTS with a LAMP stack and Open SSH Server.
+
+1. Install Git:
+   $ sudo apt-get install git
+
+2. Download the current SOC package:
+   $ git clone https://github.com/barrelballoons/barrel-soc.git
+
+   This will create a folder called "barrel-soc" in the current directory.
+   It can be deleted when the installation is complete.
+
+3. Move to the "soc-package directory":
+   $ cd barrel-soc/soc-package
+
+4. Copy the web files over:
+   $ sudo cp -r var/ /
+
+5. The make the web apps executable.
+   $ sudo chmod -R a+x /var/www/cgi-bin/
+
+6. Take ownership of all of the web files:
+   $ sudo chown -R [USER]:[GROUP] /var/www/
+   Where [USER] and [GROUP] are set to whoever owns the mainance account. 
+   Typical setup is for "barrel:barrel".
+
+7. Setup the web server by copying over the configuration files:
+   $ sudo cp -r systemFiles/* /etc/apache2/
+
+8. Restart the web server so the changes will take effect:
+   $ sudo service apache2 restart
+
+9. Create the mount points for the SOC and MOC NAS's:
+   $ sudo mkdir -p /mnt/moc-nas
+   $ sudo mkdir /mnt/soc-nas
+
+   NOTE: This step is needed regardless of whether or not you intent to use a 
+      NAS. This points to where all of the data files will be stored. 
+      If you would like to use another location, it can be specified in 
+      /var/www/cgi-bin/SOC_conf.pm .
+
+-------------------------------------------------------------------------------
+NOTE: 
+   If you are not using a NAS, skip to step 12.
+
+
+11. Install cifs utils for NAS communication:
+   $ sudo apt-get install cifs-utils
+
+10. Add NAS configuration to your /etc/fstab.
+   
+   The following line needs to be added to fstab for each NAS you are attaching:
+   //[IP]/[SHARE] [MOUNT_POINT] cifs username=[USER],password=[PASS],noperm 0 0
+
+   [IP]: the network address of the NAS (e.g. 192.168.1.100).
+   [SHARE]: The folder on the NAS that is shared.
+   [MOUNT_POINT]: The folder on the SOC that will host the remote files.
+      (Once line should be /mnt/soc-nas and the other should be /mnt/moc-nas 
+      if you are using two NAS's and the default directories).
+   [USER]/[PASS]: The user name and password you have configured on each NAS/
+
+   The file can easily be edited on the command line with the following command:
+   $ sudo pico /etc/fstab
+
+11. Mount the new drives:
+   $ sudo mount [MOUNT_POINT]
+
+   This command should be run for each mount point set in fstab. It should not 
+   give any dialog response.
+-------------------------------------------------------------------------------
+
+12. Copy the shared data files to the MOC/SOC NAS:
+   $ sudo cp -r mnt/ /
+
+   NOTE: This command will need to be altered if you are not storing these files
+      in the default /mnt/soc-nas and /mnt/moc-nas.
+
+13. Create payload directories in /mnt/soc-nas:
+   $ sudo mkdir -p /mnt/soc-nas/payload[XX]/raw
+   
+   [XX]: Payload identifier (e.g. 1A)
+
+   This command must be run for every payload from which data will be collected.
+
+14. Give everyone read and write premissions and take ownership of the 
+   shared files (Uses typical/default settings):
+   $ sudo chmod -R a+rw /mnt/moc-nas/
+   $ sudo chmod -R a+rw /mnt/soc-nas/
+
+   $ sudo chown -R barrel:barrel /mnt/moc-nas/
+   $ sudo chown -R barrel:barrel /mnt/soc-nas/
+
+15. Edit the availible payload list:
+   $ sudo nano /var/www/cgi-bin/SOC_conf.pm
+
+   Edit the payload list on line 7 and the list starting on line 400.
