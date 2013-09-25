@@ -158,6 +158,7 @@ sub mainLoop{
          die "Could not read file .lastRead!\nDied:" . $!;
 		chomp($fileObject{'lastfile'} = <LASTREAD>);
 		chomp($fileObject{'lasttime'} = <LASTREAD>);
+		chomp($fileObject{'bytecount'} = <LASTREAD>);
 		close LASTREAD;
 		
 		 #no files previously read, write temp files with first file
@@ -322,14 +323,16 @@ sub trans{
          '/' . $fileObject{'currentDate'} . '/dat/' . $fileObject{'fileName'};
 	writeFile(
       $configVals{'socNas'} . '/payload' . $fileObject{'payload'} . 
-      '/.lastRead',$fileObject{'fileName'}."\n".$stat[9]."\n"
+      '/.lastRead',$fileObject{'fileName'}."\n".
+      $stat[9]."\n".
+      $fileObject{'bytecount'}."\n"
    );
 	
-	#freeze the possibly changing raw data file by copying it to to .transfile
+	#freeze the possibly changing raw data file by copying it to the local drive
 	copy(
       $configVals{'mocNas'} . '/payload' . $fileObject{'payload'} . 
          '/' . $fileObject{'currentDate'} . '/dat/' . $fileObject{'fileName'}, 
-      $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.transfile',
+      $configVals{'tmp'}.'/'.$fileObject{'payload'}.$fileObject{'currentDate'},
       ">"
    );
 	
