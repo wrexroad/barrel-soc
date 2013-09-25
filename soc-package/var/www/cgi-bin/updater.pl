@@ -56,7 +56,7 @@ sub init{
 	}
 
    #check if things should be started mid-day
-   if($fileObject{'midday'}){
+   if($fileObject{'midday'} eq "true"){
       #the program was restarted midday, pick up where it left off
 
       #first make sure there is a good starting point
