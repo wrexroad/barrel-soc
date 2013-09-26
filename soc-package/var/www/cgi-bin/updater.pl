@@ -64,7 +64,9 @@ sub init{
          DATE,
          $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.currentdate'
       ;
-      if($fileObject{'currentDate'} ne chomp <DATE>){
+      my $d = <DATE>;
+      chomp $d;
+      if($fileObject{'currentDate'} ne $d){
          #There is a date mismatch, start at the beginning of the requested day
          clearFiles();
       }
