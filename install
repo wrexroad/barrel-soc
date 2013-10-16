@@ -1,5 +1,15 @@
 #!/bin/bash
 
+#configure how the script will run
+USER = barrel
+MOC_NAS_MNT = /mnt/moc-nas/
+MOC_NAS_USER = barrel
+MOC_NAS_PASS = barrel
+SOC_NAS_MNT = /mnt/soc-nas/
+MOC_NAS_USER = barrel
+MOC_NAS_PASS = barrel
+
+
 cd barrel-soc-package
 
 #copy over web server contents
@@ -33,10 +43,10 @@ mkdir -p /mnt/soc-nas/payload1A/raw
 
 #give everyone read and write premissions and take ownership of the 
 #shared files (Uses typical/default settings):
-chmod -R a+rw /mnt/moc-nas/
-chmod -R a+rw /mnt/soc-nas/
-chown -R $USER:$USER /mnt/moc-nas/
-chown -R $USE:$USER /mnt/soc-nas/
+chmod -R a+rw $MOC_NAS_MNT
+chmod -R a+rw $MOC_NAS_MNT
+chown -R $USER:$USER $MOC_NAS_MNT
+chown -R $USE:$USER $SOC_NAS_MNT
 
 #create a symbolic link from the SOC-NAS to the webserver:
 ln -s  /mnt/soc-nas/ /var/www/html/soc-nas
