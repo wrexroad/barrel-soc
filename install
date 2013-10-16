@@ -1,0 +1,47 @@
+#!/bin/bash
+
+cd barrel-soc-package
+
+#copy over web server contents
+cp -r var/ /
+chmod -R a+x /var/www/cgi-bin/
+chown -R $USER:$USER /var/www/
+
+#setup the web server
+cp -r systemFiles/* /etc/apache2/
+sudo service apache2 restart
+
+#create the mount points for the SOC and MOC NAS
+mkdir -p /mnt/moc-nas
+mkdir /mnt/soc-nas
+
+#install cifs utils for NAS communication:
+apt-get -y install cifs-utils
+
+#add NAS configuration to /etc/fstab and mount the drives
+echo "$MOC_NAS_IP $MOC_NAS_MNT cifs username=$MOC_NAS_USER,password=$MOC_NAS_PASS,noperm 0 0" >> /etc/fstab   
+echo "$SOC_NAS_IP $SOC_NAS_MNT cifs username=$SOC_NAS_USER,password=$SOC_NAS_PASS,noperm 0 0" >> /etc/fstab   
+sudo mount $MOC_NAS_MNT
+sudo mount $SOC_NAS_MNT
+
+#copy the shared data files to the MOC/SOC NAS:
+cp -r mnt/moc-nas/* $MOC_NAS_MNT
+cp -r mnt/soc-nas/* $SOC_NAS_MNT
+
+#create payload directories in /mnt/soc-nas:
+mkdir -p /mnt/soc-nas/payload1A/raw
+
+#give everyone read and write premissions and take ownership of the 
+#shared files (Uses typical/default settings):
+chmod -R a+rw /mnt/moc-nas/
+chmod -R a+rw /mnt/soc-nas/
+chown -R $USER:$USER /mnt/moc-nas/
+chown -R $USE:$USER /mnt/soc-nas/
+
+#create a symbolic link from the SOC-NAS to the webserver:
+ln -s  /mnt/soc-nas/ /var/www/html/soc-nas
+
+#16. Edit the availible payload list:
+#   $ sudo nano /var/www/cgi-bin/SOC_conf.pm
+
+ 
