@@ -176,24 +176,21 @@ sub mainLoop{
          #read the .newData file to get current byte count
          open 
             NEWDATA, 
-            $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.lastRead'
+            $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.newdata'
          ;
 
          while($line = <NEWDATA>){
             chomp $line;
 
             #drop json formatting
-            $line =~ s/\{//g;
-            $line =~ s/\"//g;
-            $line =~ s/\'//g;
-            $line =~ s/ //g;
+            $line =~ s/[\{\"\' ]//g;
 
             #search for bytecount
             my @line_parts = split ",", $line;
-            foreach(@line_parts){
-               @line_parts = split ":", $_; 
-               if($line_parts[0] eq "bytecount"){
-                  $fileObject{"bytecount"} = $line_parts[1];
+            foreach my $vals (@line_parts){
+               @val_set = split ":", $vals; 
+               if($val_set[0] eq "bytecount"){
+                  $fileObject{"bytecount"} = $val_set[1];
                   last;
                }
             }
@@ -209,7 +206,6 @@ sub mainLoop{
             $fileObject{'fileName'} = shift @filelist;
          }
          #if we got this far, the correct file must have been found in the list
-         print $fileObject{'bytecount'}."\n";
          trans();
       }
 		else{ #some file has already been read
