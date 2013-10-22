@@ -401,6 +401,10 @@ sub trans{
 	}
 	
 	$fileObject{'completedFrames'} = 0 if !$fileObject{'completedFrames'};
+
+   #cleanup the temp file
+   unlink 
+      $configVals{'tmp'}.'/'.$fileObject{'payload'}.$fileObject{'currentDate'};
 	
 	writetolog(
       '----------------------------------------------------------------------'

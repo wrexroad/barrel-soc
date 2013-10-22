@@ -79,7 +79,8 @@
       function starter(command){//start or stop translator for a given payload
          var payload = document.getElementById('payloadField').value;
          var startdate = document.getElementById('startDateMenu').value;
-         var midday = document.getElementById('midday').value;
+         var midday = 
+            document.getElementById('midday').checked ? "true" : "false";
          
          //figure out the mod40 offset
          var mod40_Offset = 
