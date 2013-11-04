@@ -21,12 +21,12 @@ Normal Startup Operation
    always work, in case of failure, the SOC will just start at the begining of 
    the day.
 
-5b.(Optional) If the payload has been runing for greater than 2^21 seconds,
+5b.(Optional) If the payload has been runing for longer than 2^21 seconds,
    the frame counter will roll over and the mod40 data will be scrambled.
    To fix this check the "FC Rollover" Box.
 
-6. The top message box should indicate the date for which the payload was 
-   started. This will be followed by status messages after each file is read.
+6. The top message box should indicate the payload's start date. This will be 
+   followed by status messages after each file is read.
    NOTE: There is a small delay in this message system (5-30 seconds).
 
 7. The bottom message box will display any system errors or messages that are
@@ -44,27 +44,48 @@ Startup Troubleshooting:
 No Data Arriving:
    If the Live Data Screen is not updating there may be a one of a few 
    different causes. These steps will test each.
-   1. Check for system messages in the Admin Panel. If there are messages, there
-      are errors listed, fix the problem indicated and restart the SOC.
+   1. Check for system messages in the Admin Panel. If there are errors
+      listed, fix the problem indicated and restart the SOC.
    
    2. Does the Live Data Screen show anything? One indication that the SOC is 
-      not running at all is the no data screen has no values filled in. Whe the
-      SOC first starts up, it clears the status files that control this display
-      (unless this is a midday restart). If everything is blank, that may mean 
-      the SOC tried to start, but failed before processing any data.
+      not running at all is the new data screen is filled with blank values. 
+      When the SOC first tries to start, it clears the status files that control
+      this display (unless this is a midday restart). If everything is blank, 
+      that may mean the SOC tried to start, but failed before processing any 
+      data.
    
-   3. If the Live Data Screen fields are populated, but not moving, check if 
+   3. If the Live Data Screen fields are populated, but not updating, check if 
       the date and current file seem reasonable for how the SOC was started. If
       the date displayed is different from what was set in the Admin Panel, the
       SOC probably ever even attempted to start.
+
+   4. Are the NAS drives mounted properly? Check /mnt/moc-nas and /mnt/soc-nas
+      to ensure that you can see the files which are stored in each NAS. 
       
-   4. Are there actually data to be read? Make sure the MOC is writing to the 
+   5. Are there actually data to be read? Make sure the MOC is writing to the 
       correct directory by navigatig to:
          /mnt/moc-nas/barrel/payload<Payload ID>/dat/<Date>/
       The files in this directory are what the SOC should be reading, so they 
       should be updating.
 
-   5. Are things clogged up with 0-byte files? If the directory listed in step
-      4 is full of empty filee, the SOC will take some time to get through them.
-      The Live Data Screen is running
+   6. Is there a place for the SOC to write data? The path for each payload
+      must be created before the SOC is started. For examle, for payload 1A 
+      the directoy /mnt/soc-nas/barrel/payload1A/raw should be created before 
+      starting the SOC.
+
+   7. Does the SOC have premission to read/write/execute the appropriate files?
+      The SOC web server needs premission to do the following:
+      RW for /mnt/soc-nas/ and all of its contents
+      R for /mnt/moc-nas/barrel/ and all of its contents
+      R for <webroot>/html
+      RWX for <webroot>/cgi/bin
+
+   8. Is the soc-nas symbolic link set correctly? The html directoy of the web 
+      root must have a symbolic link called "soc-nas" which points to 
+      /mnt/soc-nas
+
+   9. Are things clogged up with 0-byte files? If the moc-nas directory for this
+      payload and date is full of empty filee, the SOC will take some time to
+      get through them. The Live Data Screen may be running, but not have 
+      anything to display yet.
 
