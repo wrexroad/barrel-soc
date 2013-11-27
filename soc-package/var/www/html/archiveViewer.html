@@ -2,7 +2,7 @@
 
 <html>
    <head>
-      <title>Archive Viewer</title>
+      <title>Data Browser</title>
    
       <style type="text/css">
          
@@ -62,7 +62,7 @@
          </select>
          |
          Mouse Coordinates
-         <input class="inputs" id="mouseCoords" type="checkbox" checked />
+         <input class="inputs" id="mouseCoords" type="checkbox" />
          |
          <span class="inputs" id="extraOpts" hidden>
          Smooth
@@ -366,6 +366,14 @@
             );
             
             dataReq.processPage = function(){
+               //make sure we actually got a dataset
+               if(dataReq.response.indexOf("404 Not Found") != -1){
+                  alert("Data set not found. Check Date and Payload.");
+                  inputs.draw.disabled = false;
+                  inputs.draw.innerHTML = "Add Plot";
+                  return;
+               }
+
                //create the plot area
                var plotWin = document.getElementById("plot_window");
                
