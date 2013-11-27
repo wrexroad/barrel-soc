@@ -1,5 +1,5 @@
 Installation instruction for BARREL SOC.
-rev130920
+rev131016
 
 NOTE: These instructions are written assuming you have a clean install of 
 Ubuntu Server LTS with a LAMP stack and Open SSH Server.
@@ -93,7 +93,11 @@ NOTE:
    $ sudo chown -R barrel:barrel /mnt/moc-nas/
    $ sudo chown -R barrel:barrel /mnt/soc-nas/
 
-15. Edit the availible payload list:
+15. Create a symbolic link from the SOC-NAS to the webserver:
+   $ sudo ln -s  /mnt/soc-nas/ /var/www/html/soc-nas
+
+16. Edit the availible payload list:
    $ sudo nano /var/www/cgi-bin/SOC_conf.pm
 
    Edit the payload list on line 7 and the list starting on line 400.
+

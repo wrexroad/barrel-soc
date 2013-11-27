@@ -79,6 +79,8 @@
       function starter(command){//start or stop translator for a given payload
          var payload = document.getElementById('payloadField').value;
          var startdate = document.getElementById('startDateMenu').value;
+         var midday = 
+            document.getElementById('midday').checked ? "true" : "false";
          
          //figure out the mod40 offset
          var mod40_Offset = 
@@ -89,6 +91,7 @@
             "&payload=" + payload + 
             "&startdate=" + startdate + 
             "&site=" + document.domain + 
+            "&midday=" + midday + 
             "&mod40_Offset=" + mod40_Offset + 
             "&rand=" + Math.random()
          );
@@ -291,6 +294,7 @@
       <input type="button" id="stopPayload" value="Stop Payload" 
          onclick="starter('stop');" disabled />
       <br />
+      Start Mid-Day?<input type="checkbox" id="midday" value="checked" />
       Has FC Rolled Over?<input type="checkbox" id="fcRollover" />
    </nav>
    

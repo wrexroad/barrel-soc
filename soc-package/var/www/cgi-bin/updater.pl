@@ -20,7 +20,7 @@ sub init{
 	#create an initial time for the timout timer
 	$fileObject{'timeoutStartTime'} = time();
 	
-	#create a cross reference of subcoms to variabl names
+	#create a cross reference of subcoms to variable names
 	our %varNames = ();
 	foreach my $type (keys %dataTypes){
       $varNames{$type} = ();
@@ -44,16 +44,64 @@ sub init{
 	
 	#set the first working date
 	$fileObject{'currentDate'}=$fileObject{'startdate'};
-
-	#Initialize folder and data files
+   
+   #Make sure the output directories exist
 	unless(-d $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/'){
 		mkdir $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/'
 		or print "Could not create payload directory" . $! and die;
 	}
 	unless(-d $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/raw/'){
 		mkdir $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/raw/'
-		or print "Could not create raw file directory" . $! and die;;
+		or print "Could not create raw file directory" . $! and die;
 	}
+
+   #check if things should be started mid-day
+   if($fileObject{'midday'} eq "true"){
+      #the program was restarted midday, pick up where it left off
+
+      #first make sure there is a good starting point
+      open
+         DATE,
+         $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.currentdate'
+      ;
+
+      my $d = <DATE>;
+      chomp $d;
+
+      if($fileObject{'currentDate'} ne $d){
+         #There is a date mismatch, start at the beginning of the requested day
+         clearFiles();
+      }
+      close DATE;
+      
+      #the program will pick up where it left off using the old status files.
+      
+      writetolog('Resuming previous day.', 1);
+   }else{
+      #Starting from the begining of the day so create new status and data files
+      clearFiles();
+   }
+
+	writetolog('Date set to '.$fileObject{'currentDate'}, 1);
+	
+	#create directory listing
+	our @filelist = ();
+	@filelist =
+      getDirListing(
+         $configVals{'mocNas'} . '/payload' . $fileObject{'payload'}.
+            '/' . $fileObject{'currentDate'} . '/dat/', 'file', 'pkt'
+      ) or die
+         'Could not read file list (' .
+            $configVals{'mocNas'} . '/payload'.$fileObject{'payload'} .
+            '/'.$fileObject{'currentDate'}.'/dat/) for payload ' .
+            $fileObject{'payload'} . '!' . "\n" . $!;
+   
+   #get first set of limits
+   getLimits();
+}
+
+sub clearFiles{
+	#Initialize folder and data files
 	writeFile(
       $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.translog'
    );
@@ -68,9 +116,6 @@ sub init{
    );
 	writeFile(
       $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.lastRead'
-   );
-	writeFile(
-      $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.transfile'
    );
 	writeFile(
       $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.newhex'
@@ -100,22 +145,7 @@ sub init{
       $fileObject{'currentDate'}
    );
 	
-	writetolog('Date set to '.$fileObject{'currentDate'}, 1);
-	
-	#create directory listing
-	our @filelist=();
-	@filelist =
-      getDirListing(
-         $configVals{'mocNas'} . '/payload' . $fileObject{'payload'}.
-            '/' . $fileObject{'currentDate'} . '/dat/', 'file', 'pkt'
-      ) or die
-         'Could not read file list (' .
-            $configVals{'mocNas'} . '/payload'.$fileObject{'payload'} .
-            '/'.$fileObject{'currentDate'}.'/dat/) for payload ' .
-            $fileObject{'payload'} . '!' . "\n" . $!;
-   
-   #get first set of limits
-   getLimits();
+
 }
 
 sub mainLoop{
@@ -129,26 +159,63 @@ sub mainLoop{
          die "Could not read file .lastRead!\nDied:" . $!;
 		chomp($fileObject{'lastfile'} = <LASTREAD>);
 		chomp($fileObject{'lasttime'} = <LASTREAD>);
-		close LASTREAD;
-		
-		 #no files previously read, write temp files with first file
-       if($fileObject{'lastfile'} eq ""){ 
+      close LASTREAD;
+
+      if($fileObject{'lastfile'} eq ""){ 
+         #no files previously read, write temp files with first file
 		 	$fileObject{'fileName'} = shift(@filelist);
 			$fileObject{'bytecount'} = 0;
          
-			trans();
+		 	trans();
 			last PAYLOADCYCLE;
-		 }
+		}
+      elsif($fileObject{'midday'} eq "true"){
+         #make sure we dont do this a second time.
+         $fileObject{'midday'} = 'false';
+
+         #read the .newData file to get current byte count
+         open 
+            NEWDATA, 
+            $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.newdata'
+         ;
+
+         while($line = <NEWDATA>){
+            chomp $line;
+
+            #drop json formatting
+            $line =~ s/[\{\"\' ]//g;
+
+            #search for bytecount
+            my @line_parts = split ",", $line;
+            foreach my $vals (@line_parts){
+               @val_set = split ":", $vals; 
+               if($val_set[0] eq "bytecount"){
+                  $fileObject{"bytecount"} = $val_set[1];
+                  last;
+               }
+            }
+         }
+
+         #we should restart with the most recently read file
+         until($fileObject{'fileName'} eq $fileObject{'lastfile'}){
+            if(@filelist == 0){
+               #can not find desired file. Clear status files and start over
+               clearFiles();
+               last PAYLOADCYCLE;
+            }
+            $fileObject{'fileName'} = shift @filelist;
+         }
+         #if we got this far, the correct file must have been found in the list
+         trans();
+      }
+		else{ #some file has already been read
 		 
-		 else{ #some file has already been read
-		 
-			#get the timestamp of the current data file and 
+		   #get the timestamp of the current data file and 
          #compare it to the timestamp of the previous run
 			@stat = 
             stat(
-               $configVals{'mocNas'} . '/payload' . $fileObject{'payload'} . 
-               '/' . $fileObject{'currentDate'} . '/dat/' . 
-               $fileObject{'lastfile'}
+               $configVals{'mocNas'}.'/payload'.$fileObject{'payload'} . 
+               '/'.$fileObject{'currentDate'}.'/dat/'.$fileObject{'lastfile'}
             );
 			$currenttime = $stat[9]; 
 			
@@ -195,8 +262,7 @@ sub mainLoop{
 			}
 
 			#new data so rerun translator 
-			elsif ($currenttime != $fileObject{'lasttime'})
-			{
+			elsif ($currenttime != $fileObject{'lasttime'}){
 				trans();			
 				last PAYLOADCYCLE;
 			}
@@ -293,14 +359,15 @@ sub trans{
          '/' . $fileObject{'currentDate'} . '/dat/' . $fileObject{'fileName'};
 	writeFile(
       $configVals{'socNas'} . '/payload' . $fileObject{'payload'} . 
-      '/.lastRead',$fileObject{'fileName'}."\n".$stat[9]."\n"
+      '/.lastRead',$fileObject{'fileName'}."\n".
+      $stat[9]."\n"
    );
 	
-	#freeze the possibly changing raw data file by copying it to to .transfile
+	#freeze the possibly changing raw data file by copying it to the local drive
 	copy(
       $configVals{'mocNas'} . '/payload' . $fileObject{'payload'} . 
          '/' . $fileObject{'currentDate'} . '/dat/' . $fileObject{'fileName'}, 
-      $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/.transfile',
+      $configVals{'tmp'}.'/'.$fileObject{'payload'}.$fileObject{'currentDate'},
       ">"
    );
 	
@@ -311,7 +378,8 @@ sub trans{
 	
 	$fileObject{'completedFrames'} = 
       splitframes(
-         $configVals{'socNas'}."/payload".$fileObject{'payload'}."/.transfile"
+         $configVals{'tmp'} . '/' . 
+         $fileObject{'payload'}.$fileObject{'currentDate'}
       );
 	
 	#make sure the file does not have 0 length
@@ -329,6 +397,10 @@ sub trans{
 	}
 	
 	$fileObject{'completedFrames'} = 0 if !$fileObject{'completedFrames'};
+
+   #cleanup the temp file
+   unlink 
+      $configVals{'tmp'}.'/'.$fileObject{'payload'}.$fileObject{'currentDate'};
 	
 	writetolog(
       '----------------------------------------------------------------------'
@@ -501,10 +573,10 @@ sub datechange{
 }
 
 sub splitframes{
-	my $filename=$_[0];
-	my %frames=();
-	my $word="";
-	my ($i,$j,$k,$completedFrames,$shortFrame,$sum,$null);
+	my $filename = $_[0];
+	my %frames = ();
+	my $word = "";
+	my ($i, $j, $k, $completedFrames, $shortFrame, $sum, $null);
 
 	#clear old temp files
 	open CLEAR, ">" . $configVals{'socNas'} . "/payload" . 
@@ -523,10 +595,10 @@ sub splitframes{
 	read (RAWDAT, $null, $fileObject{'bytecount'});
 	
 	#start getting words 
-	($i,$j,$k)=(0,0,0);
+	($i, $j, $k)=(0, 0, 0);
 	while (read (RAWDAT, $word, 2)) { #read data file 1 word at a time
 		$word=unpack "H*", $word; 
-		$fileObject{'bytecount'}+=2;
+		$fileObject{'bytecount'} += 2;
 		
 		if ($word ne 'eb90'){
 			$frames{$i}[$j]=$word;
@@ -820,6 +892,7 @@ sub completeFrame{
 		$savedData{'Time'} = ($savedData{'Time'} + 1000) . "*";
 	}	
 	saveNewValue($fileObject{'fileName'},"fileName");
+	saveNewValue($fileObject{'bytecount'},"bytecount");
 	saveNewValue($newData{'version'},"version");
 
    #If we got this far, we already know we have a good frame number
