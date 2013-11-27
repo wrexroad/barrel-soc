@@ -19,7 +19,7 @@
             margin:10px;
             padding: 0;
          }
-         .plotControls{
+         .closeButton{
             float: right;
          }
          .plot{
@@ -30,9 +30,6 @@
          }
          .inputs{
             height: 25px;
-         }
-         .hidden{
-            display: none;
          }
       </style>
    </head>
@@ -80,16 +77,6 @@
 
       <div id="plot_window"></div>
    
-      <div id="saveImageForm" class="hidden">
-         <form name="saveData" class="hidden" id="save" 
-            method="POST" action="saveImage.php">
-            <input type="textarea" class="hidden" id="imageName" 
-               name="imageName" value="" />
-            <input type="textarea" class="hidden" id="imageData" 
-               name="imageData" value="" />
-         </form>
-      </div>
-
       <script src="./js/dave-js/dave.js" ></script>
       <script src="./getFile.js" ></script>
       
@@ -388,21 +375,14 @@
                newDiv.setAttribute("class", "plot");
                plotWin.insertBefore(newDiv, plotWin.firstChild);
                
-               //add "Close" button
-               var newButton = document.createElement("button");
-               newButton.setAttribute("class", "plotControls");
+               var newButton = 
+                  document.createElement("button");
+               newButton.setAttribute("class", "closeButton");
                newButton.innerHTML = "Close";
                newButton.addEventListener(
                   "click", function(){plotWin.removeChild(this.parentNode);}
                );
                newDiv.appendChild(newButton);
-
-               //add "Save" button
-               newButton = document.createElement("button");
-               newButton.setAttribute("class", "saveButton");
-               newButton.innerHTML = "Save Plot";
-               newButton.addEventListener(
-                  "click", function(){saveImage(this);}
                
                //send the data to the plotting library
                buildPlot(parseData(dataReq.response));
@@ -522,19 +502,11 @@
             return inputs["date"].value + " " + hour + ":" + min + ":" + sec;
          }
          
-         function saveImage(canvas){
-           document.getElementById("imageData").value = 
-              canvas.toDataURL();
-           document.getElementById("imageName").value = 
-              "Archive_Viewer_Plot.png";
-           document.forms["save"].submit();
-           document.getElementById("imageData").value="";
-         }
-
          function buildPlot(d){
             if(Dave_js.loaded){
                plot = new Dave_js.chart("plot");
-
+            var test = plot.getData();
+            for(var i in test){console.log(i + " = " + test[i].length);}
                var chartWidth = 
                   document.getElementById("controls").offsetWidth - 200;
                var chartHeight = 300;
