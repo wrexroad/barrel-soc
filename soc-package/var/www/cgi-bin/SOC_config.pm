@@ -185,7 +185,7 @@ our %dataTypes = (
 			"offset" => -273.15,
 			"listOrder" => 22
 		},
-		'T09_Solar2' => {
+		'T09' => {
 			"mux" => 40,
 			"subcom" => 19,
 			"fullScale" => 0.007629,
@@ -199,7 +199,7 @@ our %dataTypes = (
 			"offset" => -273.15,
 			"listOrder" => 24
 		},
-		'T11_Solar4' => {
+		'T11' => {
 			"mux" => 40,
 			"subcom" => 23,
 			"fullScale" => 0.007629,

@@ -896,8 +896,18 @@ sub completeFrame{
 	
 	#Housekeeping Data
 	if ($modIndex{"40"} <= 35){
-		$newData{"hk"}[$modIndex{'40'}] = 
-         scaleData(hex($$frameRef[23]), 'hk', $modIndex{'40'});
+      if($newData{'version'} > 3 && $modIndex{'40'} == 19){
+         #this is the new housekeeping value for magnetometer ADC temp   
+         $newData{"hk"}[19] = 
+            ((hex($$frameRef[23]) - hex(0x8000)) * 0.09094) - 273.15;
+      }elsif($newData{'version'} > 3 && $modIndex{'40'} == 23){
+         #this is the new housekeeping value for magnetometer ADC offset
+         $newData{"hk"}[23] = 
+            hex($$frameRef[23]) * 0.0003576;
+      }else{
+         $newData{"hk"}[$modIndex{'40'}] = 
+            scaleData(hex($$frameRef[23]), 'hk', $modIndex{'40'});
+      }
 	}
 	elsif($modIndex{"40"} == 36){
 		$newData{'numOfSats'} = hex($$frameRef[23]) >> 8;
@@ -990,16 +1000,16 @@ sub completeFrame{
       'T08_Solar1',"%.2f"
    );
 	saveFormattedNewValue(
-      $newData{'hk'}[$dataTypes{'hk'}{'T09_Solar2'}{'subcom'}],
-      'T09_Solar2',"%.2f"
+      $newData{'hk'}[$dataTypes{'hk'}{'T09'}{'subcom'}],
+      'T09',"%.2f"
    );
 	saveFormattedNewValue(
       $newData{'hk'}[$dataTypes{'hk'}{'T10_Solar3'}{'subcom'}],
       'T10_Solar3',"%.2f"
    );
 	saveFormattedNewValue(
-      $newData{'hk'}[$dataTypes{'hk'}{'T11_Solar4'}{'subcom'}],
-      'T11_Solar4',"%.2f"
+      $newData{'hk'}[$dataTypes{'hk'}{'T11'}{'subcom'}],
+      'T11',"%.2f"
    );
 	saveFormattedNewValue(
       $newData{'hk'}[$dataTypes{'hk'}{'T12_TermTemp'}{'subcom'}],
@@ -1264,14 +1274,14 @@ sub completeFrame{
 		writeFormattedValue(
          $newData{"hk"}[$dataTypes{'hk'}{'T08_Solar1'}{'subcom'}],"%.3f"
       );
-		writeFormattedValue(
-         $newData{"hk"}[$dataTypes{'hk'}{'T09_Solar2'}{'subcom'}],"%.3f"
+      writeFormattedValue(
+         $newData{"hk"}[$dataTypes{'hk'}{'T09'}{'subcom'}],"%.3f"
       );
 		writeFormattedValue(
          $newData{"hk"}[$dataTypes{'hk'}{'T10_Solar3'}{'subcom'}],"%.3f"
       );
-		writeFormattedValue(
-         $newData{"hk"}[$dataTypes{'hk'}{'T11_Solar4'}{'subcom'}],"%.3f"
+      writeFormattedValue(
+         $newData{"hk"}[$dataTypes{'hk'}{'T11'}{'subcom'}],"%.3f"
       );
 		writeFormattedValue(
          $newData{"hk"}[$dataTypes{'hk'}{'T12_TermTemp'}{'subcom'}],"%.3f"
@@ -1388,14 +1398,14 @@ sub completeFrame{
 		writeFormattedValue(
          $newData{"hk"}[$dataTypes{'hk'}{'T08_Solar1'}{'subcom'}],"%.3f"
       );
-		writeFormattedValue(
-         $newData{"hk"}[$dataTypes{'hk'}{'T09_Solar2'}{'subcom'}],"%.3f"
+      writeFormattedValue(
+         $newData{"hk"}[$dataTypes{'hk'}{'T09'}{'subcom'}],"%.3f"
       );
 		writeFormattedValue(
          $newData{"hk"}[$dataTypes{'hk'}{'T10_Solar3'}{'subcom'}],"%.3f"
       );
-		writeFormattedValue(
-         $newData{"hk"}[$dataTypes{'hk'}{'T11_Solar4'}{'subcom'}],"%.3f"
+      writeFormattedValue(
+         $newData{"hk"}[$dataTypes{'hk'}{'T11'}{'subcom'}],"%.3f"
       );
 		writeFormattedValue(
          $newData{"hk"}[$dataTypes{'hk'}{'T12_TermTemp'}{'subcom'}],"%.3f"
@@ -1844,8 +1854,8 @@ sub newDataFiles{
 	$header = 
       "Frames,Time," . 
       "T00_Scint,T01_Mag,T02_ChargeCont,T03_Battery,T04_PowerConv," . 
-      "T05_DPU,T06_Modem,T07_Structure,T08_Solar1,T09_Solar2,T10_Solar3," . 
-      "T11_Solar4,T12_TermTemp,T13_TermBatt,T14_TermCap,T15_CCStat," .
+      "T05_DPU,T06_Modem,T07_Structure,T08_Solar1,T09,T10_Solar3," . 
+      "T11,T12_TermTemp,T13_TermBatt,T14_TermCap,T15_CCStat," .
 		"V0_VoltAtLoad,V01_Battery,V02_Solar1,V03_+DPU,V04_+XRayDet,V05_Modem," .
       "V06_-XRayDet,V07_-DPU,V08_Mag,V09_Solar2,V10_Solar3,V11_Solar4,".
 		"I0_TotalLoad,I01_TotalSolar,I02_Solar1,I03_+DPU," . 
@@ -1887,8 +1897,8 @@ sub newDataFiles{
 	$header = 
       "Frames,Time," . 
       "T00_Scint,T01_Mag,T02_ChargeCont,T03_Battery,T04_PowerConv," . 
-      "T05_DPU,T06_Modem,T07_Structure,T08_Solar1,T09_Solar2,T10_Solar3," . 
-      "T11_Solar4,T12_TermTemp,T13_TermBatt,T14_TermCap,T15_CCStat\n";
+      "T05_DPU,T06_Modem,T07_Structure,T08_Solar1,T09,T10_Solar3," . 
+      "T11,T12_TermTemp,T13_TermBatt,T14_TermCap,T15_CCStat\n";
 	writeFile(
       $configVals{'socNas'} . "/payload" . $fileObject{'payload'} . 
          "/.T" . $fileObject{'currentDate'}, $header
