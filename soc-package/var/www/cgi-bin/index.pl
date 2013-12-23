@@ -156,11 +156,11 @@ print << "BUTTONSDIV";
 		<input type="button" value="Live Data" onclick="newDataPayload=payloads[0];swapFrame('/cgi-bin/newData.pl','newData');" />	
 		<!-- <input type="button" value="Spectra Viewer" onclick="swapFrame('/spectra.html','newData');" />	-->
 		<input type="button" value="Maps" onclick="swapFrame('/cgi-bin/maps.pl','maps');" />
-		<input type="button" value="Archive Viewer*" onclick="window.open('/archiveViewer.html');" />
+		<input type="button" value="Data Browser*" onclick="window.open('/archiveViewer.html');" />
 		<input type="button" value="Quicklook Spectra*" onclick="window.open('/quickSpectra.html');" />
 		<input type="button" value="Admin Panel*" onclick="window.open('/cgi-bin/adminPanel.pl');" />
 		<input type="button" value="Wiki*" onclick="window.open('https://barrel.pbworks.com/session/login?return_to_page=Barrel+Mission+Monitor+Wiki');" />
-     <input type="button" value="Download Data*" onclick="window.open('http://barrel.ssl.berkeley.edu/soc-nas/data_products/');" />
+     <input type="button" value="Download Data*" onclick="window.open('http://barreldata.ucsc.edu/data_products/');" />
 		<font size=1>*Opens in a new window.</font>
 		</center>
 	</div>
