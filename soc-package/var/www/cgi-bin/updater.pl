@@ -693,6 +693,7 @@ sub completeFrame{
 	my $timeoffset=0;
 	my $tempfile="";
 	my %newData=();
+   my $newBinLayout = 0;
 	
 	#verify checksum
 	$newData{'cksm'} = hex($$frameRef[105]);
@@ -716,7 +717,7 @@ sub completeFrame{
       0b00000111111000000000000000000000) >> 21;
 	$newData{'frameNumber'} = 
       hex($$frameRef[0].$$frameRef[1]) & 0b111111111111111111111;
-	
+
 	#Skip if there is no valid frame counter.
 	if(!$newData{'frameNumber'}){
 		$fileObject{noFC}++;
@@ -832,14 +833,47 @@ sub completeFrame{
 		#4 energy levels, 20 elements each. 
       #lc1 and lc2 are 2 byte values, lc3 and lc4 are 1 byte values.
 		($i,$j) = (0,0);
-		while($i < 60){
-			$newData{'LC1'}[$j] = hex($$frameRef[24 + $i]); 
-			$newData{'LC2'}[$j] = hex($$frameRef[25 + $i]);
-			$newData{'LC3'}[$j] = hex($$frameRef[26 + $i]) >> 8;
-			$newData{'LC4'}[$j] = hex($$frameRef[26 + $i]) & 0b11111111;
-			$i += 3;
-			$j++;
-		}
+      
+      if($newData{'version'} <= 3){
+         #use the old fspc binning scheme
+         while($i < 60){
+            $newData{'LC1'}[$j] = hex($$frameRef[24 + $i]); 
+            $newData{'LC2'}[$j] = hex($$frameRef[25 + $i]);
+            $newData{'LC3'}[$j] = hex($$frameRef[26 + $i]) >> 8;
+            $newData{'LC4'}[$j] = hex($$frameRef[26 + $i]) & 0b11111111;
+            $i += 3;
+            $j++;
+         }
+      }else{
+         #this frame has the new 6 channel fspc
+         my $fspcString;
+         while($i < 60){
+            $fspcString = 
+               hex($$frameRef[24 + $i].$$frameRef[25 + $i].
+               $$frameRef[26 + $i].$$frameRef[27 + $i]);
+
+            $newData{'LC1'}[$j] = #fspc1 
+               ($fspcString & 
+               0b111111111000000000000000000000000000000000000000 >> 39) * 2;
+            $newData{'LC1'}[$j] += #fspc2
+               ($fspcString & 
+               0b000000000111111111000000000000000000000000000000 >> 30) * 2;
+            $newData{'LC1'}[$j] += #fspc3
+               ($fspcString & 
+               0b000000000000000000111111110000000000000000000000 >> 22) * 2;
+            $newData{'LC2'}[$j] = #fspc4
+               ($fspcString & 
+               0b000000000000000000000000001111111110000000000000 >> 13);
+            $newData{'LC3'}[$j] = #fspc5
+               ($fspcString & 
+               0b000000000000000000000000000000000001111111000000 >> 6);
+            $newData{'LC4'}[$j] = #fspc6
+               ($fspcString & 
+               0b000000000000000000000000000000000000000000111111);
+            $i += 3;
+            $j++;
+         }
+      }
 		($newData{'lc1'},$newData{'lc2'},$newData{'lc3'},$newData{'lc4'}) = 
          (0,0,0,0);
       foreach(@{$newData{'LC1'}}){$newData{'lc1'}+=$_;}
