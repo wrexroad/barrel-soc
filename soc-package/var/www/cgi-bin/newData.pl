@@ -241,8 +241,7 @@ Delay:
          <table bgcolor=#7A8B94 border>
 				<tr>
 				   <td colspan=4>
-				      <center><b>Mag Data</b>
-				   </center>
+				      <center><b>Mag Data</b></center>
 				   </td>
             </tr>
 				<tr>
@@ -252,6 +251,12 @@ Delay:
 				   <td>
 				      <input class="dataField" type="text" size="5" id="MAG_X" />
 				   </td>
+				   <td>
+				      Temp
+				   </td>
+				   <td>
+				      <input class="dataField" type="text" size="5" id="ADC_Temp" />
+				   </td>
             </tr>
 				<tr>
 				   <td>
@@ -259,6 +264,12 @@ Delay:
 				   </td>
 				   <td>
 				      <input class="dataField" type="text" size="5" id="MAG_Y" />
+				   </td>
+				   <td>
+				      Offset
+				   </td>
+				   <td>
+				      <input class="dataField" type="text" size="5" id="ADC_Offset" />
 				   </td>
             </tr>
 				<tr>
@@ -765,6 +776,15 @@ Delay:
                }
             }
 			}
+         
+         //figure out which T9 and T11 to display
+         if(parsedData.version > 3){
+            fields.ADC_Temp.value = parsedData.T09;
+            fields.ADC_Offset.value = parsedData.T11;
+         }else{
+            fields.T09_Solar2.value = parsedData.T09;
+            fields.T11_Solar4.value = parsedData.T11;
+         }
 
          //calculate the solar noon and midight for this location
          solarnoon.calc();

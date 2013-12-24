@@ -4,7 +4,7 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(%dsContact %modValues %subcomValues %payloadLabels %configVals %dataTypes @payloads @statusVars @sciVars @tempVars @voltVars @currentVars @houseVars @slowSpectraWidths @medSpectraWidths);
 
-our @payloads = qw(1Z 2A 2B 2C 2D 2E 2F 2G 2H 2I 2J 2K 2L 2M 2N 2O 2P 2Q 2R 2S 1E 1F 1P 1X 1Y 2U 2V 2W 2X 2Y 2Z);
+our @payloads = qw(1Z 2A 2B 2C 2D 2E 2F 2G 2H 2I 2J 2K 2L 2M 2N 2O 2P 2Q 2R 2S 2T 2U 1E 1X 1Y 2U 2V 2W 2X 2Y 2Z);
 
 our %dsContact = (
     'Warren' => '4083903235@txt.att.net',
@@ -417,9 +417,9 @@ our %payloadLabels = (  #list of payload names with numerical indices
 	"2Q" => 18,
 	"2R" => 19,
 	"2S" => 20,
-	"1E" => 21,
-	"1F" => 22,
-	"1P" => 23,
+	"2T" => 21,
+	"2U" => 22,
+	"1E" => 23,
 	"1X" => 24,
 	"1Y" => 25,
 	"2U" => 26,
