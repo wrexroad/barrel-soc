@@ -777,6 +777,13 @@ Delay:
             }
 			}
          
+         //figure out magOfB
+         fields.magOfB.value = Math.sqrt(
+            Math.pow(parsedData.MAG_X, 2) + 
+            Math.pow(parsedData.MAG_Y, 2) + 
+            Math.pow(parsedData.MAG_Z, 2)
+         );
+
          //figure out which T9 and T11 to display
          if(parsedData.version > 3){
             fields.ADC_Temp.value = parsedData.T09;
