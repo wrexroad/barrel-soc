@@ -733,7 +733,7 @@ sub completeFrame{
    #offset the mod40 if specified
    if($fileObject{'mod40_Offset'}){
 		$modIndex{'40'} = 
-         ($newData{'frameNumber'} - $fileObject{'mod40_Offset'}) % 40;
+         ($newData{'frameNumber'} + 2097152) % 40;
    }else{
 		$modIndex{'40'} = $newData{'frameNumber'} % 40;
    }
