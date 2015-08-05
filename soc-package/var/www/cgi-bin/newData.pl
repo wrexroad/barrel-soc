@@ -453,7 +453,7 @@ Delay:
 				      V1_Battery
 				   </td>
 				   <td>
-				      <input class="dataField" type="text" size="5" id="V01_Battery" />
+				      <input class="dataField" type="text" size="5" id="V01_Battery" style="display:none" />
 				   </td>
 				</tr>
 				<tr>
@@ -461,7 +461,7 @@ Delay:
 				      V2_Solar1
 				   </td>
 				   <td>
-				      <input class="dataField" type="text" size="5" id="V02_Solar1" />
+				      <input class="dataField" type="text" size="5" id="V02_Solar1" style="display:none" />
 				   </td>
 				</tr>
 				<tr>
@@ -514,7 +514,7 @@ Delay:
             </tr>
 				<tr>
 				   <td>
-				      V9_Solar2
+				      V9_Heater
                </td>
                   <td>
                      <input class="dataField" type="text" size="5" id="V09_Solar2" />
@@ -525,7 +525,8 @@ Delay:
 				      V10_Solar3
 				   </td>
 				   <td>
-				      <input class="dataField" type="text" size="5" id="V10_Solar3" />
+				      <input class="dataField" type="text" size="5" id="V10_Solar3" style=
+"display:none" />
                </td>
             </tr>
 				<tr>
@@ -533,7 +534,7 @@ Delay:
 				      V11_Solar4
                </td>
                <td>
-                  <input class="dataField" type="text" size="5" id="V11_Solar4" />
+                  <input class="dataField" type="text" size="5" id="V11_Solar4" style="display:none" />
                </td>
             </tr>
 			</table>
@@ -560,7 +561,7 @@ Delay:
 				      I1_TotalSolar
                </td>
                <td>
-                  <input class="dataField" type="text" size="5" id="I01_TotalSolar" />
+                  <input class="dataField" type="text" size="5" id="I01_TotalSolar" style="display:none" />
                </td>
             </tr>
 				<tr>
@@ -568,7 +569,7 @@ Delay:
 				      I2_Solar1
 				   </td>
 				   <td>
-				      <input class="dataField" type="text" size="5" id="I02_Solar1" />
+				      <input class="dataField" type="text" size="5" id="I02_Solar1" style="display:none" />
                </td>
             </tr>
 				<tr>
