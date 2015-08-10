@@ -155,7 +155,7 @@ print << "BUTTONSDIV";
 		<center>
 		<input type="button" value="Live Data" onclick="newDataPayload=payloads[0];swapFrame('/cgi-bin/newData.pl','newData');" />	
 		<!-- <input type="button" value="Spectra Viewer" onclick="swapFrame('/spectra.html','newData');" />	-->
-		<input type="button" value="Maps" onclick="swapFrame('/cgi-bin/maps.pl','maps');" />
+		<input type="button" value="Maps" onclick="swapFrame('/googleMaps.html','maps');" />
 		<input type="button" value="Data Browser*" onclick="window.open('/archiveViewer.html');" />
 		<input type="button" value="Quicklook Spectra*" onclick="window.open('/quickSpectra.html');" />
 		<input type="button" value="Admin Panel*" onclick="window.open('/cgi-bin/adminPanel.pl');" />
