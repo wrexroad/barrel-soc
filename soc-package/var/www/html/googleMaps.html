@@ -126,7 +126,7 @@
           lat  = +fields[3];
           lng  = +fields[4];
           
-          if (lat && lng && date > startDate && date < endDate) {
+          if (lat && lng && date >= startDate && date <= endDate) {
             flightPathCoordinates.push({lat: lat, lng: lng});
           }
         }
@@ -136,7 +136,7 @@
           geodesic: true,
           strokeColor: payloadList[this.payload].color,
           strokeOpacity: 1.0,
-          strokeWeight: 2
+          strokeWeight: 5
         })).setMap(map);
     	}
     
