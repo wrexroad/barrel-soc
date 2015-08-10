@@ -27,7 +27,9 @@
       };
       
       function initialize() {
-        var mapOptions, pay_i, payloadSelector, span, checkbox, date;
+        var
+          mapOptions, pay_i, payloadSelector, span, checkbox,
+          date, day, month, year;
                  
         //create payload checkboxes
         payloadSelector = document.getElementById("payloadSelector");
@@ -51,13 +53,17 @@
         
         //set the end date to today
         date = new Date();
-        document.getElementById("endyear").value =
-          (date.getUTCFullYear() + "").substr(2);
-        document.getElementById("endmonth").value =
-          (date.getUTCMonth() + 1);
-        document.getElementById("endday").value =
-          date.getUTCDate();
+        year =  (date.getUTCFullYear() + "").substr(2);
+        document.getElementById("endyear").value = year;
         
+        month = (date.getUTCMonth() + 1);
+        month = (month < 10 ? "0" : "") + month;
+        document.getElementById("endmonth").value = month;
+        
+        day = date.getUTCDate();
+        day = (day < 10 ? "0" : "") + day;
+        document.getElementById("endday").value = day;
+
         mapOptions = {
           zoom: 4,
           center: {lat: 60.0, lng: 20.0},
@@ -101,7 +107,7 @@
           ),
           flightPathCoordinates = [],
           lines, fields, lat, lng, date;
-console.log(i++);
+
         //check if the response is valid
         if (this.response.indexOf("DOCTYPE") > -1) {
           return;
