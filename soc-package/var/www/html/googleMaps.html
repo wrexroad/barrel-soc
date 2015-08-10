@@ -12,18 +12,18 @@
     <script type="text/javascript">
       var map;
       var payloadList = {
-        "1Z": {color: "blue", selected: true},
-        "2G": {color: "red", selected: true},
-        "2H": {color: "green", selected: true},
-        "2J": {color: "black", selected: true},
-        "2S": {color: "purple", selected: true},
-        "2U": {color: "salmon", selected: true},
-        "3A": {color: "chartreuse", selected: true},
-        "3B": {color: "slategray", selected: true},
-        "3C": {color: "magenta", selected: true},
-        "3D": {color: "chocolate", selected: true},
-        "3E": {color: "aquamarine", selected: true},
-        "3F": {color: "silver", selected: true} 
+        "3A": {color: "blue", selected: true},
+        "3B": {color: "red", selected: true},
+        "3C": {color: "green", selected: true},
+        "3D": {color: "black", selected: true},
+        "3E": {color: "purple", selected: true},
+        "3F": {color: "salmon", selected: true},
+        "2G": {color: "chartreuse", selected: true},
+        "2H": {color: "slategray", selected: true},
+        "2J": {color: "magenta", selected: true},
+        "2S": {color: "chocolate", selected: true},
+        "2U": {color: "aquamarine", selected: true},
+        "1Z": {color: "silver", selected: true} 
       };
       
       function initialize() {
@@ -63,15 +63,8 @@
         day = date.getUTCDate();
         day = (day < 10 ? "0" : "") + day;
         document.getElementById("endday").value = day;
-
-        map =
-          new google.maps.Map(
-            document.getElementById('map-canvas'), {
-              zoom: 4,
-              center: {lat: 65.0, lng: 20.0},
-              mapTypeId: google.maps.MapTypeId.TERRAIN
-            }
-          );
+        
+        getData();
       }
   	
     	function getData() {
@@ -80,8 +73,8 @@
         map =
           new google.maps.Map(
             document.getElementById('map-canvas'), {
-              zoom: 4,
-              center: {lat: 65.0, lng: 20.0},
+              zoom: 5,
+              center: {lat: 63.0, lng: 20.0},
               mapTypeId: google.maps.MapTypeId.TERRAIN
             }
           );
@@ -98,7 +91,7 @@
           }
         }
     	}
-      i=0;
+
     	function processData() {
         var
           startDate = +(
