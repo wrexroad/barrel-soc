@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style type="text/css">
+      html, body, #map-canvas { height: 100%; margin: 0; padding: 0;}
+    </style>
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwnyA3Kvy-1HWYtStRQwZDuqRWVZqbvFc">
+    </script>
+    <script language="JavaScript" type="text/javascript" src="/getFile.js" >
+    </script>
+    <script type="text/javascript">
+      var map;
+      var payloadList = {
+        "1Z": {color: "blue", selected: true},
+        "2G": {color: "red", selected: true},
+        "2H": {color: "green", selected: true},
+        "2J": {color: "black", selected: true},
+        "2S": {color: "purple", selected: true},
+        "2U": {color: "salmon", selected: true},
+        "3A": {color: "chartreuse", selected: true},
+        "3B": {color: "slategray", selected: true},
+        "3C": {color: "magenta", selected: true},
+        "3D": {color: "chocolate", selected: true},
+        "3E": {color: "aquamarine", selected: true},
+        "3F": {color: "silver", selected: true} 
+      };
+      
+      function initialize() {
+        var mapOptions, pay_i, payloadSelector, span, checkbox, date;
+                 
+        //create payload checkboxes
+        payloadSelector = document.getElementById("payloadSelector");
+        for (pay_i in payloadList) {
+          span = document.createElement("span");
+          span.style.color = payloadList[pay_i].color;
+          span.innerHTML = pay_i;
+          payloadSelector.appendChild(span);
+          
+          checkbox = document.createElement("input");
+          checkbox.id = pay_i;
+          checkbox.type = "checkbox";
+          checkbox.checked = true;
+          span.appendChild(checkbox);
+        }
+        
+        //set the start date to the start of the current campaign
+        document.getElementById("startyear").value  = "15";
+        document.getElementById("startmonth").value = "08";
+        document.getElementById("startday").value   = "10";
+        
+        //set the end date to today
+        date = new Date();
+        document.getElementById("endyear").value =
+          (date.getUTCFullYear() + "").substr(2);
+        document.getElementById("endmonth").value =
+          (date.getUTCMonth() + 1);
+        document.getElementById("endday").value =
+          date.getUTCDate();
+        
+        mapOptions = {
+          zoom: 4,
+          center: {lat: 68.0, lng: 20.0},
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+  	
+        map =
+          new google.maps.Map(
+            document.getElementById('map-canvas'), mapOptions
+          );
+      }
+  	
+    	function getData() {
+        var pay_i, dataReq;
+        
+        for (pay_i in payloadList) {
+          if (document.getElementById(pay_i).checked) {
+            //create a page request object
+		        dataReq = new getFile();
+            dataReq.payload = pay_i;
+		        dataReq.seturl(
+              "/soc-nas/payload" + pay_i + "/.flightpath?+&rand="+Math.random()
+            );
+		        dataReq.processPage = processData;
+            dataReq.sendReq();
+          }
+        }
+    	}
+      i=0;
+    	function processData() {
+        var
+          startDate = +(
+      	    document.getElementById("startyear").value + 
+      	  	document.getElementById("startmonth").value + 
+      	  	document.getElementById("startday").value
+          ),
+      	  endDate = +(
+      	    document.getElementById("endyear").value + 
+      	  	document.getElementById("endmonth").value + 
+      		  document.getElementById("endday").value
+          ),
+          flightPathCoordinates = [],
+          lines, fields, lat, lng, date;
+console.log(i++);
+        //check if the response is valid
+        if (this.response.indexOf("DOCTYPE") > -1) {
+          return;
+        }
+        
+        lines = this.response.split("\n") || [];
+        while (lines.length){
+          fields = (lines.pop() + "").split(",");
+          date = +fields[0];
+          lat  = +fields[3];
+          lng  = +fields[4];
+          
+          if (lat && lng && date > startDate && date < endDate) {
+            flightPathCoordinates.push({lat: lat, lng: lng});
+          }
+        }
+
+        (new google.maps.Polyline({
+          path: flightPathCoordinates,
+          geodesic: true,
+          strokeColor: payloadList[this.payload].color,
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        })).setMap(map);
+    	}
+    
+      google.maps.event.addDomListener(window, 'load', initialize);
+      
+    </script>
+  </head>
+  <body>
+	<div id="payloadSelector"></div>
+  <div>
+  	<span>Start Date
+  		<select id="startyear">
+  	    <option value="08">2008</option>
+  		  <option value="09">2009</option>
+  		  <option value="10">2010</option>
+  		  <option value="11">2011</option>
+  		  <option value="12">2012</option>
+  		  <option value="13">2013</option>
+  		  <option value="14">2014</option>
+  		  <option value="15">2015</option>
+  		</select>
+  		<select id="startmonth">
+  	    <option value="01">Jan</option>
+  		  <option value="02">Feb</option>
+  		  <option value="03">Mar</option>
+  		  <option value="04">Apr</option>
+  		  <option value="05">May</option>
+  		  <option value="06">Jun</option>
+  		  <option value="07">Jul</option>
+  		  <option value="08">Aug</option>
+  		  <option value="09">Sep</option>
+  		  <option value="10">Oct</option>
+  		  <option value="11">Nov</option>
+  		  <option value="12">Dec</option>
+  		</select>
+  		<select id="startday">
+  	    <option value="01">01</option>
+  		  <option value="02">02</option>
+  		  <option value="03">03</option>
+  		  <option value="04">04</option>
+  		  <option value="05">05</option>
+  		  <option value="06">06</option>
+  		  <option value="07">07</option>
+  		  <option value="08">08</option>
+  		  <option value="09">09</option>
+  		  <option value="10">10</option>
+  		  <option value="11">11</option>
+  		  <option value="12">12</option>
+  		  <option value="13">13</option>
+  		  <option value="14">14</option>
+  		  <option value="15">15</option>
+  		  <option value="16">16</option>
+  		  <option value="17">17</option>
+  		  <option value="18">18</option>
+  		  <option value="19">19</option>
+  		  <option value="20">20</option>
+  		  <option value="21">21</option>
+  		  <option value="22">22</option>
+  		  <option value="23">23</option>
+  		  <option value="24">24</option>
+  		  <option value="25">25</option>
+  		  <option value="26">26</option>
+  		  <option value="27">27</option>
+  		  <option value="28">28</option>
+  		  <option value="29">29</option>
+  		  <option value="30">30</option>
+  		  <option value="31">31</option>
+  		</select>
+  	</span>
+  	<span>End Date
+  		<select id="endyear">
+  	    <option value="08">2008</option>
+  		  <option value="09">2009</option>
+  		  <option value="10">2010</option>
+  		  <option value="11">2011</option>
+  		  <option value="12">2012</option>
+  		  <option value="13">2013</option>
+  		  <option value="14">2014</option>
+  		  <option value="15">2015</option>
+  		</select>
+  		<select id="endmonth">
+        <option value="01">Jan</option>
+  		  <option value="02">Feb</option>
+  		  <option value="03">Mar</option>
+  		  <option value="04">Apr</option>
+  		  <option value="05">May</option>
+  		  <option value="06">Jun</option>
+  		  <option value="07">Jul</option>
+  		  <option value="08">Aug</option>
+  		  <option value="09">Sep</option>
+  		  <option value="10">Oct</option>
+  		  <option value="11">Nov</option>
+  		  <option value="12">Dec</option>
+  		</select>
+  		<select id="endday">
+        <option value="01">01</option>
+  		  <option value="02">02</option>
+  		  <option value="03">03</option>
+  		  <option value="04">04</option>
+  		  <option value="05">05</option>
+  		  <option value="06">06</option>
+  		  <option value="07">07</option>
+  		  <option value="08">08</option>
+  		  <option value="09">09</option>
+  		  <option value="10">10</option>
+  		  <option value="11">11</option>
+  		  <option value="12">12</option>
+  		  <option value="13">13</option>
+  		  <option value="14">14</option>
+  		  <option value="15">15</option>
+  		  <option value="16">16</option>
+  		  <option value="17">17</option>
+  		  <option value="18">18</option>
+  		  <option value="19">19</option>
+  		  <option value="20">20</option>
+  		  <option value="21">21</option>
+  		  <option value="22">22</option>
+  		  <option value="23">23</option>
+  		  <option value="24">24</option>
+  		  <option value="25">25</option>
+  		  <option value="26">26</option>
+  		  <option value="27">27</option>
+  		  <option value="28">28</option>
+  		  <option value="29">29</option>
+  		  <option value="30">30</option>
+  		  <option value="31">31</option>
+  		</select>
+  	</span>
+    <button onclick="getData()">Load</button>
+  </div>
+	<div id="map-canvas"></div>
+  </body>
+</html>
