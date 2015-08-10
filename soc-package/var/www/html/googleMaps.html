@@ -68,7 +68,7 @@
           new google.maps.Map(
             document.getElementById('map-canvas'), {
               zoom: 4,
-              center: {lat: 60.0, lng: 20.0},
+              center: {lat: 65.0, lng: 20.0},
               mapTypeId: google.maps.MapTypeId.TERRAIN
             }
           );
@@ -81,7 +81,7 @@
           new google.maps.Map(
             document.getElementById('map-canvas'), {
               zoom: 4,
-              center: {lat: 60.0, lng: 20.0},
+              center: {lat: 65.0, lng: 20.0},
               mapTypeId: google.maps.MapTypeId.TERRAIN
             }
           );
@@ -133,10 +133,10 @@
 
         (new google.maps.Polyline({
           path: flightPathCoordinates,
-          geodesic: true,
+          //geodesic: true,
           strokeColor: payloadList[this.payload].color,
           strokeOpacity: 1.0,
-          strokeWeight: 5
+          strokeWeight: 4
         })).setMap(map);
     	}
     
