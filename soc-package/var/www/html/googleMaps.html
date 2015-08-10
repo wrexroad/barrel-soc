@@ -28,7 +28,7 @@
       
       function initialize() {
         var
-          mapOptions, pay_i, payloadSelector, span, checkbox,
+          pay_i, payloadSelector, span, checkbox,
           date, day, month, year;
                  
         //create payload checkboxes
@@ -64,21 +64,27 @@
         day = (day < 10 ? "0" : "") + day;
         document.getElementById("endday").value = day;
 
-        mapOptions = {
-          zoom: 4,
-          center: {lat: 60.0, lng: 20.0},
-          mapTypeId: google.maps.MapTypeId.TERRAIN
-        };
-  	
         map =
           new google.maps.Map(
-            document.getElementById('map-canvas'), mapOptions
+            document.getElementById('map-canvas'), {
+              zoom: 4,
+              center: {lat: 60.0, lng: 20.0},
+              mapTypeId: google.maps.MapTypeId.TERRAIN
+            }
           );
       }
   	
     	function getData() {
         var pay_i, dataReq;
-        
+  	
+        map =
+          new google.maps.Map(
+            document.getElementById('map-canvas'), {
+              zoom: 4,
+              center: {lat: 60.0, lng: 20.0},
+              mapTypeId: google.maps.MapTypeId.TERRAIN
+            }
+          );
         for (pay_i in payloadList) {
           if (document.getElementById(pay_i).checked) {
             //create a page request object
