@@ -2,6 +2,8 @@
 
 use SOC_config qw(%configVals %dataTypes %dsContact);
 use SOC_funcs qw(getDirListing getVarInfo);
+use MongoDB;
+use MongoDB::OID;
 
 #turn off output buffering
 $|=1;
@@ -13,6 +15,9 @@ sub init{
    our %savedData = ();
    our %alerts = ();
    our %limits = ();
+   
+   our $client = MongoDB::MongoClient->new;
+   our $db = $client->get_database('barrel');
    
    #create a buffer to hold 60 seconds worth of 
    our @gpsAltBuf = (0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
@@ -45,6 +50,16 @@ sub init{
    #set the first working date
    $fileObject{'currentDate'}=$fileObject{'startdate'};
    
+   #get the database collections for this payload
+   our $misc_collection = $db->get_collection('misc'.$fileObject{'payload'});
+   our $magn_collection = $db->get_collection('magn'.$fileObject{'payload'});
+   our $fspc_collection = $db->get_collection('fspc'.$fileObject{'payload'});
+   our $mspc_collection = $db->get_collection('mspc'.$fileObject{'payload'});
+   our $sspc_collection = $db->get_collection('sspc'.$fileObject{'payload'});
+   our $rcnt_collection = $db->get_collection('rcnt'.$fileObject{'payload'});
+   our $ephm_collection = $db->get_collection('ephm'.$fileObject{'payload'});
+   our $hkpg_collection = $db->get_collection('hkpg'.$fileObject{'payload'});
+
    #Make sure the output directories exist
    unless(-d $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/'){
       mkdir $configVals{'socNas'}.'/payload'.$fileObject{'payload'}.'/'
@@ -771,7 +786,7 @@ sub completeFrame{
    
    #GPS Pulse Per Second
       $newData{'pps'} = hex($$frameRef[4]);
-   
+
    #Mag Data
       #three vectors are returned at 4Hz each. Each value is 3bytes
       $newData{'bx1'} =
@@ -1110,6 +1125,130 @@ sub completeFrame{
    for ($i=0; $i < $configVals{'frameLength'}; $i++){
       $savedData{"hex"}=$savedData{"hex"}.",".$$frameRef[$i];
    }
+   
+   #export frame to database
+   $misc_collection->update(
+      {"_id" => $newData{'frameNumber'}},
+      {
+         "\$set" => {
+            "time" => $dateString,
+            "pps"  => $newData{'pps'}
+         },
+         "\$setOnInsert" => {
+            "_id"  => $newData{'frameNumber'}
+         }
+      },
+      {"upsert" => 1}
+   );
+   $magn_collection->update(
+      {"_id" => $newData{'frameNumber'}},
+      {
+         "\$set" => {
+            "time" => $dateString,
+            "Bx"   => 
+               [$newData{'bx1'}, $newData{'bx2'}, $newData{'bx3'}, $newData{'bx4'}],
+            "By"   =>
+               [$newData{'by1'}, $newData{'by2'}, $newData{'by3'}, $newData{'by4'}],
+            "Bz"   =>
+               [$newData{'bz1'}, $newData{'bz2'}, $newData{'bz3'}, $newData{'bz4'}],
+            "magB" =>
+               sqrt(
+                  $newData{'bx'}*$newData{'bx'} +
+                  $newData{'by'}*$newData{'by'} +
+                  $newData{'bz'}*$newData{'bz'}
+               )
+         },
+         "\$setOnInsert" => {
+            "_id"  => $newData{'frameNumber'}
+         }
+      },
+      {"upsert" => 1}
+   );
+   $fspc_collection->update(
+      {"_id" => $newData{'frameNumber'}},
+      {
+         "\$set" => {
+            "time"  => $dateString,
+            "fspc1" => [@{$newData{'LC1'}}],
+            "fspc2" => [@{$newData{'LC2'}}],
+            "fspc3" => [@{$newData{'LC3'}}],
+            "fspc4" => [@{$newData{'LC4'}}]
+         },
+         "\$setOnInsert" => {
+            "_id"  => $newData{'frameNumber'}
+         }
+      },
+      {"upsert" => 1}
+   );
+   for(my $offset_i = 0; $offset_i < 48; $offset_i++){
+      $mspc_collection->update(
+         {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
+         {
+            "\$set" => {
+               "time" => $dateStrinigMod4,
+               "mspc.".$modIndex{"4"} => hex($$frameRef[84 + $offset_i])
+            },
+            "\$setOnInsert" => {
+               "_id"  => $newData{'frameNumber'} - $modIndex{"4"}
+            }
+         },
+         {"upsert" => 1}
+      );
+   }
+   for(my $offset_i = 0; $offset_i < 256; $offset_i++){
+      $sspc_collection->update(
+         {"_id" => $newData{'frameNumber'} - $modIndex{"32"}},
+         {
+            "\$set" => {
+               "time" => $dateStringMod32,
+               "sspc.".$modIndex{"32"} => hex($$frameRef[96 + $offset_i])
+            },
+            "\$setOnInsert" => {
+               "_id"  => $newData{'frameNumber'} - $modIndex{"32"}
+            }
+         },
+         {"upsert" => 1}
+      );
+   }
+   $rcnt_collection->update(
+      {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
+      {
+         "\$set" => {
+            "time" => $dateStrinigMod4,
+            "rcnt.".$modIndex{"4"} => $newData{'rc'}[$modIndx{"4"}]
+         },
+         "\$setOnInsert" => {
+            "_id"  => $newData{'frameNumber'} - $modIndex{"4"}
+         }
+      },
+      {"upsert" => 1}
+   );
+   $ephm_collection->update(
+      {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
+      {
+         "\$set" => {
+            "time" => $dateStrinigMod4,
+            "gps.".$modIndex{"4"} => $newData{'gps'}[$modIndx{"4"}]
+         },
+         "\$setOnInsert" => {
+            "_id"  => $newData{'frameNumber'} - $modIndex{"4"}
+         }
+      },
+      {"upsert" => 1}
+   );
+   $hkpg_collection->update(
+      {"_id" => $newData{'frameNumber'} - $modIndex{"40"}},
+      {
+         "\$set" => {
+            "time" => $dateStrinigMod40,
+            "hkpg.".$modIndex{"40"} => $newData{'hk'}[$modIndx{"40"}]
+         },
+         "\$setOnInsert" => {
+            "_id"  => $newData{'frameNumber'} - $modIndex{"40"}
+         }
+      },
+      {"upsert" => 1}
+   );
 
    #Do a check for any out of range data
    checkLimits(\%newData, \%modIndex);
