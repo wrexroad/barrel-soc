@@ -4,6 +4,7 @@ use SOC_config qw(%configVals %dataTypes %dsContact);
 use SOC_funcs qw(getDirListing getVarInfo);
 use MongoDB;
 use MongoDB::OID;
+use Time::Local;
 
 #turn off output buffering
 $|=1;
@@ -15,7 +16,7 @@ sub init{
    our %savedData = ();
    our %alerts = ();
    our %limits = ();
-   
+
    our $client = MongoDB::MongoClient->new;
    our $db = $client->get_database('barrel');
    
@@ -49,7 +50,13 @@ sub init{
    
    #set the first working date
    $fileObject{'currentDate'}=$fileObject{'startdate'};
-   
+   $fileObject{'currentEpoch'} = timegm(
+      0, 0, 0,
+      int(substr $fileObject{'currentDate'}, 4),
+      int(substr $fileObject{'currentDate'}, 2, 2) - 1,
+      int("1".(substr $fileObject{'currentDate'}, 0, 2))
+   );
+
    #get the database collections for this payload
    our $misc_collection = $db->get_collection('misc'.$fileObject{'payload'});
    our $magn_collection = $db->get_collection('magn'.$fileObject{'payload'});
@@ -490,6 +497,14 @@ sub datechange{
       
       shift(@datelist);
       $fileObject{'currentDate'} = shift(@datelist);
+      $fileObject{'currentEpoch'} = timegm(
+         0, 0, 0,
+         int(substr $fileObject{'currentDate'}, 4),
+         int(substr $fileObject{'currentDate'}, 2, 2) - 1,
+         int("1".(substr $fileObject{'currentDate'}, 0, 2))
+      );
+
+
       if(
          $fileObject{'enddate'} and 
          ($fileObject{'currentDate'} > $fileObject{'endate'})
@@ -1126,12 +1141,24 @@ sub completeFrame{
       $savedData{"hex"}=$savedData{"hex"}.",".$$frameRef[$i];
    }
    
+   #get time info for this frame 
+   my $rawTime = int($newData{'gps'}[1]) / 1000; #convert ms to sec
+   $rawTime %= 86400; #get rid of any complete days
+   my $time1 =
+      int($fileObject{'currentEpoch'}) + $rawTime;
+   my $time4 =
+      int($fileObject{'currentEpoch'}) + $rawTime - $modIndex{'4'};
+   my $time32 =
+      int($fileObject{'currentEpoch'}) + $rawTime - $modIndex{'32'};
+   my $time40 =
+      int($fileObject{'currentEpoch'}) + $rawTime - $modIndex{'40'};
+
    #export frame to database
    $misc_collection->update(
       {"_id" => $newData{'frameNumber'}},
       {
          "\$set" => {
-            "time" => $dateString,
+            "date" => $time1,
             "pps"  => $newData{'pps'}
          },
          "\$setOnInsert" => {
@@ -1144,7 +1171,7 @@ sub completeFrame{
       {"_id" => $newData{'frameNumber'}},
       {
          "\$set" => {
-            "time" => $dateString,
+            "date" => $time1,
             "Bx"   => 
                [$newData{'bx1'}, $newData{'bx2'}, $newData{'bx3'}, $newData{'bx4'}],
             "By"   =>
@@ -1168,7 +1195,7 @@ sub completeFrame{
       {"_id" => $newData{'frameNumber'}},
       {
          "\$set" => {
-            "time"  => $dateString,
+            "date"  => $time1,
             "fspc1" => [@{$newData{'LC1'}}],
             "fspc2" => [@{$newData{'LC2'}}],
             "fspc3" => [@{$newData{'LC3'}}],
@@ -1185,7 +1212,7 @@ sub completeFrame{
          {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
          {
             "\$set" => {
-               "time" => $dateStrinigMod4,
+               "date" => $time4,
                "mspc.".$modIndex{"4"} => hex($$frameRef[84 + $offset_i])
             },
             "\$setOnInsert" => {
@@ -1200,7 +1227,7 @@ sub completeFrame{
          {"_id" => $newData{'frameNumber'} - $modIndex{"32"}},
          {
             "\$set" => {
-               "time" => $dateStringMod32,
+               "date" => $time32,
                "sspc.".$modIndex{"32"} => hex($$frameRef[96 + $offset_i])
             },
             "\$setOnInsert" => {
@@ -1214,7 +1241,7 @@ sub completeFrame{
       {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
       {
          "\$set" => {
-            "time" => $dateStrinigMod4,
+            "date" => $time4,
             "rcnt.".$modIndex{"4"} => $newData{'rc'}[$modIndx{"4"}]
          },
          "\$setOnInsert" => {
@@ -1227,7 +1254,7 @@ sub completeFrame{
       {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
       {
          "\$set" => {
-            "time" => $dateStrinigMod4,
+            "date" => $time4,
             "gps.".$modIndex{"4"} => $newData{'gps'}[$modIndx{"4"}]
          },
          "\$setOnInsert" => {
@@ -1240,7 +1267,7 @@ sub completeFrame{
       {"_id" => $newData{'frameNumber'} - $modIndex{"40"}},
       {
          "\$set" => {
-            "time" => $dateStrinigMod40,
+            "date" => $time40,
             "hkpg.".$modIndex{"40"} => $newData{'hk'}[$modIndx{"40"}]
          },
          "\$setOnInsert" => {
