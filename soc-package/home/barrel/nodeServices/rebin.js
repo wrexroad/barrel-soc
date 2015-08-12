@@ -223,10 +223,111 @@ var rebinner = {
       return rebinned;
    },
    ephm : function(payload, docs, binLvL) {
-      var rebinned = [];
+      var
+         numDocs = docs.length,
+         binWidth = Math.pow(2, binLvL),
+         ephm = {},
+         loVal = {},
+         hiVal = {},
+         rebinned = [],
+         doc_i, bin_i, thisBinId, lastBinId;
+
       if (binLvL < 3) {
-         return;
+         //binning level too low, there would be less than 1 record per bin
+         return docs;
       }
+      if (!numDocs) {
+         return null;
+      }
+      
+      //set the first value of 'binId' and start an empty document.
+      thisBinId = lastBinId = docs[0]._id - (docs[0]._id % binWidth); 
+
+      for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
+         thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
+         if (thisBinId != lastBinId) {
+            rebinned[bin_i] = {
+               _id: thisBinId, ephm: {}
+            };
+            rebinned[bin_i + 1] = {
+               _id: thisBinId + (binWidth / 2), ephm: {}
+            };
+            rebinned[bin_i].ephm = {
+               '0' : +loVal['0'],
+               '1' : +loVal['1'],
+               '2' : +loVal['2'],
+               '3' : +loVal['3']
+            };
+            rebinned[bin_i + 1].ephm = {
+               '0' : +hiVal['0'],
+               '1' : +hiVal['1'],
+               '2' : +hiVal['2'],
+               '3' : +hiVal['3']
+            };
+
+            loVal = {};
+            hiVal = {};
+            bin_i += 2;
+         }
+         
+         if (+ephm['0'] || ephm['0'] === 0) {
+            if (!(loVal['0'] < ephm['0'])) {
+               loVal['0'] = ephm['0'];
+            };
+            if (!(hiVal['0'] > ephm['0'])) {
+               hiVal['0'] = ephm['0'];
+            };
+         }
+   
+         if (+ephm['1'] || ephm['1'] === 0) {
+            if (!(loVal['1'] < ephm['1'])) {
+               loVal['1'] = ephm['1'];
+            };
+            if (!(hiVal['1'] > ephm['1'])) {
+               hiVal['1'] = ephm['1'];
+            };
+         }
+   
+         if (+ephm['2'] || ephm['2'] === 0) {
+            if (!(loVal['2'] < ephm['2'])) {
+               loVal['2'] = ephm['2'];
+            };
+            if (!(hiVal['2'] > ephm['2'])) {
+               hiVal['2'] = ephm['2'];
+            };
+         }
+   
+         if (+ephm['3'] || ephm['3'] === 0) {
+            if (!(loVal['3'] < ephm['3'])) {
+               loVal['3'] = ephm['3'];
+            };
+            if (!(hiVal['3'] > ephm['3'])) {
+               hiVal['3'] = ephm['3'];
+            };
+         }
+      
+         lastBinId = thisBinId;
+      }
+      
+      rebinned[bin_i] = {
+         _id: thisBinId, ephm: {}
+      };
+      rebinned[bin_i + 1] = {
+         _id: thisBinId + (binWidth / 2), ephm: {}
+      };
+      rebinned[bin_i].ephm = {
+         '0' : +loVal['0'],
+         '1' : +loVal['1'],
+         '2' : +loVal['2'],
+         '3' : +loVal['3']
+      };
+      rebinned[bin_i + 1].ephm = {
+         '0' : +hiVal['0'],
+         '1' : +hiVal['1'],
+         '2' : +hiVal['2'],
+         '3' : +hiVal['3']
+      };
+
       return rebinned;
    },
    misc : function(payload, docs, binLvL) {
