@@ -1167,44 +1167,48 @@ sub completeFrame{
       },
       {"upsert" => 1}
    );
-   $magn_collection->update(
-      {"_id" => $time1},
-      {
-         "\$set" => {
-            "Bx" => 
-               [$newData{'bx1'}, $newData{'bx2'}, $newData{'bx3'}, $newData{'bx4'}],
-            "By" =>
-               [$newData{'by1'}, $newData{'by2'}, $newData{'by3'}, $newData{'by4'}],
-            "Bz" =>
-               [$newData{'bz1'}, $newData{'bz2'}, $newData{'bz3'}, $newData{'bz4'}],
-            "magB" =>
-               sqrt(
-                  $newData{'bx'}*$newData{'bx'} +
-                  $newData{'by'}*$newData{'by'} +
-                  $newData{'bz'}*$newData{'bz'}
-               )
+   for(my $sample_i; $sample_i < 4; $sample_i++) {
+      $magn_collection->update(
+         {"_id" => $time1 + (0.25 * $sample_i)},
+         {
+            "\$set" => {
+               "Bx" => 
+                  [$newData{'bx1'}, $newData{'bx2'}, $newData{'bx3'}, $newData{'bx4'}],
+               "By" =>
+                  [$newData{'by1'}, $newData{'by2'}, $newData{'by3'}, $newData{'by4'}],
+               "Bz" =>
+                  [$newData{'bz1'}, $newData{'bz2'}, $newData{'bz3'}, $newData{'bz4'}],
+               "magB" =>
+                  sqrt(
+                     $newData{'bx'} * $newData{'bx'} +
+                     $newData{'by'} * $newData{'by'} +
+                     $newData{'bz'} * $newData{'bz'}
+                  )
+            },
+            "\$setOnInsert" => {
+               "_id" => $time1 + (0.25 * $sample_i)
+            }
          },
-         "\$setOnInsert" => {
-            "_id" => $time1
-         }
-      },
-      {"upsert" => 1}
-   );
-   $fspc_collection->update(
-      {"_id" => $time1},
-      {
-         "\$set" => {
-            "fspc1" => [@{$newData{'LC1'}}],
-            "fspc2" => [@{$newData{'LC2'}}],
-            "fspc3" => [@{$newData{'LC3'}}],
-            "fspc4" => [@{$newData{'LC4'}}]
+         {"upsert" => 1}
+      );
+   }
+   for(my $sample_i; $sample_i < 20; $sample_i++) {
+      $fspc_collection->update(
+         {"_id" => $time1 + (0.05 * $sample_i)},
+         {
+            "\$set" => {
+               "fspc1" => @{$newData{'LC1'}}[$sample_i],
+               "fspc2" => @{$newData{'LC2'}}[$sample_i],
+               "fspc3" => @{$newData{'LC3'}}[$sample_i],
+               "fspc4" => @{$newData{'LC4'}}[$sample_i]
+            },
+            "\$setOnInsert" => {
+               "_id" => $time1 + (0.05 * $sample_i)
+            }
          },
-         "\$setOnInsert" => {
-            "_id" => $time1
-         }
-      },
-      {"upsert" => 1}
-   );
+         {"upsert" => 1}
+      );
+   }
    for(my $offset_i = 0; $offset_i < 48; $offset_i++){
       $mspc_collection->update(
          {"_id" => $time4},
