@@ -4,7 +4,7 @@ var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
 var url = 'mongodb://localhost:27017/barrel';
 var rawCollectionNames = new RegExp(
-   /(misc|ephm|hkpg|magn|rcnt|fspc|mspc|sspc)[1-3][A-Z]/
+   /(misc|ephm|hkpg|magn|rcnt|fspc)[1-3][A-Z]/
 );
 var lastRebinTime = {};
 
@@ -35,6 +35,7 @@ var getLatestData = function() {
                      
                      for (binLvl = 1; binLvl <= 16; binLvl++) {
                         docs = rebinner[type](payload, docs, binLvl);
+                        db.collection(name + "." + binLvL).
                      }
                   });
             }
@@ -113,20 +114,6 @@ var rebinner = {
          rebinned[bin_i + 1].hkpg[var_i] = +hiVal[var_i];
       }
 
-      return rebinned;
-   },
-   sspc : function(payload, docs, binLvL) {
-      var rebinned = [];
-      if (binLvL < 6) {
-         return docs;
-      }
-      return rebinned;
-   },
-   mspc : function(payload, docs, binLvL) {
-      var rebinned = [];
-      if (binLvL < 3) {
-         return docs;
-      }
       return rebinned;
    },
    rcnt : function(payload, docs, binLvL) {
