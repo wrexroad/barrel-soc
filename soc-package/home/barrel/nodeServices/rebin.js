@@ -35,7 +35,6 @@ var getLatestData = function() {
                      
                      for (binLvl = 1; binLvl <= 16; binLvl++) {
                         docs = rebinner[type](payload, docs, binLvl);
-                        db.collection(name + "." + binLvL).
                      }
                   });
             }
