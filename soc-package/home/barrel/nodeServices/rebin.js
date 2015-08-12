@@ -118,6 +118,7 @@ var rebinner = {
       var
          numDocs = docs.length,
          binWidth = Math.pow(2, binLvL),
+         rcnt = {},
          loVal = {},
          hiVal = {},
          rebinned = [],
@@ -161,35 +162,41 @@ var rebinner = {
             bin_i += 2;
          }
          
-         if (!(+rcnt[var_i] || rcnt[var_i] === 0)) {
-            //invalid data point
-            continue;
+         if (+rcnt['0'] || rcnt['0'] === 0) {
+            if (!(loVal['0'] < rcnt['0'])) {
+               loVal['0'] = rcnt['0'];
+            };
+            if (!(hiVal['0'] > rcnt['0'])) {
+               hiVal['0'] = rcnt['0'];
+            };
          }
-
-         if (!(loVal['0'] < hkpg['0'])) {
-            loVal['0'] = hkpg['0'];
-         };
-         if (!(loVal['1'] < hkpg['1'])) {
-            loVal['1'] = hkpg['1'];
-         };
-         if (!(loVal['2'] < hkpg['2'])) {
-            loVal['2'] = hkpg['2'];
-         };
-         if (!(loVal['3'] < hkpg['3'])) {
-            loVal['3'] = hkpg['3'];
-         };
-         if (!(hiVal['0'] > hkpg['0'])) {
-            hiVal['0'] = hkpg['0'];
-         };
-         if (!(hiVal['1'] > hkpg['1'])) {
-            hiVal['1'] = hkpg['1'];
-         };
-         if (!(hiVal['2'] > hkpg['2'])) {
-            hiVal['2'] = hkpg['2'];
-         };
-         if (!(hiVal['3'] > hkpg['3'])) {
-            hiVal['3'] = hkpg['3'];
-         };
+   
+         if (+rcnt['1'] || rcnt['1'] === 0) {
+            if (!(loVal['1'] < rcnt['1'])) {
+               loVal['1'] = rcnt['1'];
+            };
+            if (!(hiVal['1'] > rcnt['1'])) {
+               hiVal['1'] = rcnt['1'];
+            };
+         }
+   
+         if (+rcnt['2'] || rcnt['2'] === 0) {
+            if (!(loVal['2'] < rcnt['2'])) {
+               loVal['2'] = rcnt['2'];
+            };
+            if (!(hiVal['2'] > rcnt['2'])) {
+               hiVal['2'] = rcnt['2'];
+            };
+         }
+   
+         if (+rcnt['3'] || rcnt['3'] === 0) {
+            if (!(loVal['3'] < rcnt['3'])) {
+               loVal['3'] = rcnt['3'];
+            };
+            if (!(hiVal['3'] > rcnt['3'])) {
+               hiVal['3'] = rcnt['3'];
+            };
+         }
       
          lastBinId = thisBinId;
       }
