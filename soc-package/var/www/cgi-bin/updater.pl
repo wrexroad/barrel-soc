@@ -1155,28 +1155,27 @@ sub completeFrame{
 
    #export frame to database
    $misc_collection->update(
-      {"_id" => $newData{'frameNumber'}},
+      {"_id" => $time1},
       {
          "\$set" => {
-            "date" => $time1,
-            "pps"  => $newData{'pps'}
+            "fc"  => $newData{'frameNumber'},
+            "pps" => $newData{'pps'}
          },
          "\$setOnInsert" => {
-            "_id"  => $newData{'frameNumber'}
+            "_id"  => $time1
          }
       },
       {"upsert" => 1}
    );
    $magn_collection->update(
-      {"_id" => $newData{'frameNumber'}},
+      {"_id" => $time1},
       {
          "\$set" => {
-            "date" => $time1,
-            "Bx"   => 
+            "Bx" => 
                [$newData{'bx1'}, $newData{'bx2'}, $newData{'bx3'}, $newData{'bx4'}],
-            "By"   =>
+            "By" =>
                [$newData{'by1'}, $newData{'by2'}, $newData{'by3'}, $newData{'by4'}],
-            "Bz"   =>
+            "Bz" =>
                [$newData{'bz1'}, $newData{'bz2'}, $newData{'bz3'}, $newData{'bz4'}],
             "magB" =>
                sqrt(
@@ -1186,37 +1185,35 @@ sub completeFrame{
                )
          },
          "\$setOnInsert" => {
-            "_id"  => $newData{'frameNumber'}
+            "_id" => $time1
          }
       },
       {"upsert" => 1}
    );
    $fspc_collection->update(
-      {"_id" => $newData{'frameNumber'}},
+      {"_id" => $time1},
       {
          "\$set" => {
-            "date"  => $time1,
             "fspc1" => [@{$newData{'LC1'}}],
             "fspc2" => [@{$newData{'LC2'}}],
             "fspc3" => [@{$newData{'LC3'}}],
             "fspc4" => [@{$newData{'LC4'}}]
          },
          "\$setOnInsert" => {
-            "_id"  => $newData{'frameNumber'}
+            "_id" => $time1
          }
       },
       {"upsert" => 1}
    );
    for(my $offset_i = 0; $offset_i < 48; $offset_i++){
       $mspc_collection->update(
-         {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
+         {"_id" => $time4},
          {
             "\$set" => {
-               "date" => $time4,
                "mspc.".$modIndex{"4"} => hex($$frameRef[84 + $offset_i])
             },
             "\$setOnInsert" => {
-               "_id"  => $newData{'frameNumber'} - $modIndex{"4"}
+               "_id" => $time4
             }
          },
          {"upsert" => 1}
@@ -1224,54 +1221,50 @@ sub completeFrame{
    }
    for(my $offset_i = 0; $offset_i < 256; $offset_i++){
       $sspc_collection->update(
-         {"_id" => $newData{'frameNumber'} - $modIndex{"32"}},
+         {"_id" => $time32},
          {
             "\$set" => {
-               "date" => $time32,
                "sspc.".$modIndex{"32"} => hex($$frameRef[96 + $offset_i])
             },
             "\$setOnInsert" => {
-               "_id"  => $newData{'frameNumber'} - $modIndex{"32"}
+               "_id" => $time32
             }
          },
          {"upsert" => 1}
       );
    }
    $rcnt_collection->update(
-      {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
+      {"_id" => $time4},
       {
          "\$set" => {
-            "date" => $time4,
             "rcnt.".$modIndex{"4"} => $newData{'rc'}[$modIndx{"4"}]
          },
          "\$setOnInsert" => {
-            "_id"  => $newData{'frameNumber'} - $modIndex{"4"}
+            "_id" => $time4
          }
       },
       {"upsert" => 1}
    );
    $ephm_collection->update(
-      {"_id" => $newData{'frameNumber'} - $modIndex{"4"}},
+      {"_id" => $time4},
       {
          "\$set" => {
-            "date" => $time4,
             "gps.".$modIndex{"4"} => $newData{'gps'}[$modIndx{"4"}]
          },
          "\$setOnInsert" => {
-            "_id"  => $newData{'frameNumber'} - $modIndex{"4"}
+            "_id" => $time4
          }
       },
       {"upsert" => 1}
    );
    $hkpg_collection->update(
-      {"_id" => $newData{'frameNumber'} - $modIndex{"40"}},
+      {"_id" => $time40},
       {
          "\$set" => {
-            "date" => $time40,
             "hkpg.".$modIndex{"40"} => $newData{'hk'}[$modIndx{"40"}]
          },
          "\$setOnInsert" => {
-            "_id"  => $newData{'frameNumber'} - $modIndex{"40"}
+            "_id" => $time40
          }
       },
       {"upsert" => 1}
