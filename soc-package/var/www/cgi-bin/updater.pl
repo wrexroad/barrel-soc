@@ -1209,12 +1209,12 @@ sub completeFrame{
          {"upsert" => 1}
       );
    }
-   for(my $offset_i = 0; $offset_i < 48; $offset_i++){
+   for(my $offset_i = 0; $offset_i < 12; $offset_i++){
       $mspc_collection->update(
          {"_id" => $time4},
          {
             "\$set" => {
-               "mspc.".$modIndex{"4"} => hex($$frameRef[84 + $offset_i])
+               "mspc.".($offset_i + (12 * $modIndex{"4"})) => hex($$frameRef[84 + $offset_i])
             },
             "\$setOnInsert" => {
                "_id" => $time4
@@ -1223,12 +1223,12 @@ sub completeFrame{
          {"upsert" => 1}
       );
    }
-   for(my $offset_i = 0; $offset_i < 256; $offset_i++){
+   for(my $offset_i = 0; $offset_i < 8; $offset_i++){
       $sspc_collection->update(
          {"_id" => $time32},
          {
             "\$set" => {
-               "sspc.".$modIndex{"32"} => hex($$frameRef[96 + $offset_i])
+               "sspc.".($offset_i + (8 * $modIndex{"32"})) => hex($$frameRef[96 + $offset_i])
             },
             "\$setOnInsert" => {
                "_id" => $time32
