@@ -402,11 +402,155 @@ var rebinner = {
       return rebinned;
    },
    magn : function(payload, docs, binLvL) {
-      var rebinned = [];
+      var
+         numDocs = docs.length,
+         binWidth = Math.pow(2, binLvL),
+         record = {},
+         loVal = {},
+         hiVal = {},
+         rebinned = [],
+         var_i, doc_i, bin_i, thisBinId, prevBinId, value;
+
+      if (binLvL < 2) {
+         //binning level too low, there would be less than 1 record per bin
+         return docs;
+      }
+      if (!numDocs) {
+         return null;
+      }
+      
+      //set the first value of 'binId' and start an empty document.
+      thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
+      prevFrame = +docs[0].fc;
+      for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
+         thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
+         
+         record = {
+            Bx:   +docs[doc_i].Bx,
+            By:   +docs[doc_i].By,
+            Bz:   +docs[doc_i].Bz,
+            magB: +docs[doc_i].magB
+         };
+ 
+         if (thisBinId != prevBinId) {
+            rebinned[bin_i] = {
+               _id: thisBinId 
+            };
+            rebinned[bin_i + 1] = {
+               _id: thisBinId + (binWidth / 2)
+            };
+            for (var_i = 0; var_i < record.length; var_i++) {
+               rebinned[bin_i][var_i] = +loVal[var_i];
+               rebinned[bin_i + 1][var_i] = +hiVal[var_i];
+            }
+
+            loVal = {};
+            hiVal = {};
+            bin_i += 2;
+         }
+         
+         for (var_i = 0; var_i < record.length; var_i++) {
+            value = record[var_i];
+            if (value || value === 0) {
+               if (!(loVal[var_i] < value)) {
+                  loVal[var_i] = value;
+               };
+               if (!(hiVal[var_i] > value)) {
+                  hiVal[var_i] = value;
+               };
+            }
+         }
+   
+         prevBinId = thisBinId;
+      }
+      
+      rebinned[bin_i] = {
+         _id: thisBinId
+      };
+      rebinned[bin_i + 1] = {
+         _id: thisBinId + (binWidth / 2)
+      };
+      for (var_i = 0; var_i < record.length; var_i++) {
+         rebinned[bin_i][var_i] = +loVal[var_i];
+         rebinned[bin_i + 1][var_i] = +hiVal[var_i];
+      }
+
       return rebinned;
    },
    fspc : function(payload, docs, binLvL) {
-      var rebinned = [];
+      var
+         numDocs = docs.length,
+         binWidth = Math.pow(2, binLvL),
+         record = {},
+         loVal = {},
+         hiVal = {},
+         rebinned = [],
+         var_i, doc_i, bin_i, thisBinId, prevBinId, value;
+
+      if (binLvL < 2) {
+         //binning level too low, there would be less than 1 record per bin
+         return docs;
+      }
+      if (!numDocs) {
+         return null;
+      }
+      
+      //set the first value of 'binId' and start an empty document.
+      thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
+      prevFrame = +docs[0].fc;
+      for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
+         thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
+         
+         record = {
+            fspc1: +docs[doc_i].fspc1,
+            fspc2: +docs[doc_i].fspc2,
+            fspc3: +docs[doc_i].fspc3,
+            fspc4: +docs[doc_i].fspc4
+         };
+ 
+         if (thisBinId != prevBinId) {
+            rebinned[bin_i] = {
+               _id: thisBinId 
+            };
+            rebinned[bin_i + 1] = {
+               _id: thisBinId + (binWidth / 2)
+            };
+            for (var_i = 0; var_i < record.length; var_i++) {
+               rebinned[bin_i][var_i] = +loVal[var_i];
+               rebinned[bin_i + 1][var_i] = +hiVal[var_i];
+            }
+
+            loVal = {};
+            hiVal = {};
+            bin_i += 2;
+         }
+         
+         for (var_i = 0; var_i < record.length; var_i++) {
+            value = record[var_i];
+            if (value || value === 0) {
+               if (!(loVal[var_i] < value)) {
+                  loVal[var_i] = value;
+               };
+               if (!(hiVal[var_i] > value)) {
+                  hiVal[var_i] = value;
+               };
+            }
+         }
+   
+         prevBinId = thisBinId;
+      }
+      
+      rebinned[bin_i] = {
+         _id: thisBinId
+      };
+      rebinned[bin_i + 1] = {
+         _id: thisBinId + (binWidth / 2)
+      };
+      for (var_i = 0; var_i < record.length; var_i++) {
+         rebinned[bin_i][var_i] = +loVal[var_i];
+         rebinned[bin_i + 1][var_i] = +hiVal[var_i];
+      }
+
       return rebinned;
    }
 };
