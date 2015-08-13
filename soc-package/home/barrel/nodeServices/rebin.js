@@ -4,7 +4,7 @@ var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
 var url = 'mongodb://localhost:27017/barrel';
 var rawCollectionNames = new RegExp(
-   /(misc|ephm|hkpg|magn|rcnt|fspc)[1-3][A-Z]/
+   /(misc|ephm|hkpg|magn|rcnt|fspc)[1-3][A-Z]$/
 );
 var lastRebinDay = {};
 
@@ -18,17 +18,19 @@ var getLatestData = function() {
             var name, type, payload;
            
             name = (collection.namespace.match(rawCollectionNames)||[])[0];
-           
             if (name) {
                payload = name.substr(4);
                type = name.substr(0, 4);
 
                collection.find({"_id" : {"$gte" : lastRebinDay[name] || 0}}).
                   toArray(function(err, docs) {
-                     var binLvl;
+                     var
+                        bulkOps = [],
+                        binLvl, doc_i;
 
                      if(err) {
                         console.error(err);
+                        return;
                      }
                      
                      lastRebinDay[name] = +(new Date()) / 1000;
@@ -37,7 +39,37 @@ var getLatestData = function() {
                      
                      for (binLvl = 1; binLvl <= 16; binLvl++) {
                         docs = rebinner[type](payload, docs, binLvl);
-                        console.log(name, binLvl, (docs || []).length);
+                        console.log(
+                           "Rebinned " +  (docs || []).length +
+                           " docs for " + name + "." + binLvl
+                        );
+                        
+                        if (!docs || !docs.length) {
+                           continue;
+                        } 
+                        //first we need to delete any old docs for this time span
+                        bulkOps = [{
+                           deleteMany: {
+                              filter: {
+                                 $and: [
+                                    {_id: {$gte: docs[0]._id}},
+                                    {_id: {$lte: docs[docs.length - 1]._id}}
+                                 ]
+                              }
+                           }
+                        }];
+
+                        //create insert operations for all of the new docs
+                        for (doc_i = 0; doc_i < docs.length; doc_i++) {
+                           bulkOps.push({
+                              insertOne: {document:  docs[doc_i]}
+                           });
+                        }
+                        //preform the bulk operations
+                        db.collection(name + "." + binLvl).
+                           bulkWrite(bulkOps, function(err, r) {
+                              if (err) {console.error(err);}
+                           });
                      }
                   });
             }
