@@ -6,7 +6,7 @@ var url = 'mongodb://localhost:27017/barrel';
 var rawCollectionNames = new RegExp(
    /(misc|ephm|hkpg|magn|rcnt|fspc)[1-3][A-Z]/
 );
-var lastRebinTime = {};
+var lastRebinDay = {};
 
 var getLatestData = function() {
    MongoClient.connect(url, function(err, db) {
@@ -23,7 +23,7 @@ var getLatestData = function() {
                payload = name.substr(4);
                type = name.substr(0, 4);
 
-               collection.find({"_id" : {"$gt" : lastRebinTime[type] || 0}}).
+               collection.find({"_id" : {"$gte" : lastRebinDay[name] || 0}}).
                   toArray(function(err, docs) {
                      var binLvl;
 
@@ -31,7 +31,9 @@ var getLatestData = function() {
                         console.error(err);
                      }
                      
-                     lastRebinTime[name] = +(new Date()) / 1000;
+                     lastRebinDay[name] = +(new Date()) / 1000;
+                     lastRebinDay[name] =
+                        lastRebinDay[name] - lastRebinDay[name] % 86400;
                      
                      for (binLvl = 1; binLvl <= 16; binLvl++) {
                         docs = rebinner[type](payload, docs, binLvl);
