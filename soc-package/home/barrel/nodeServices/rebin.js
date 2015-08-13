@@ -49,10 +49,11 @@ var rebinner = {
       var
          numDocs = docs.length,
          binWidth = Math.pow(2, binLvL),
+         record = {},
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, var_i, thisBinId, prevBinId, record, value;
+         doc_i, bin_i, var_i, thisBinId, prevBinId, value;
 
       if (binLvL < 7) {
          //binning level too low, there would be less than 1 record per bin
@@ -120,11 +121,11 @@ var rebinner = {
       var
          numDocs = docs.length,
          binWidth = Math.pow(2, binLvL),
-         rcnt = {},
+         record = {},
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, thisBinId, prevBinId, record, value;
+         doc_i, bin_i, thisBinId, prevBinId, value;
 
       if (binLvL < 3) {
          //binning level too low, there would be less than 1 record per bin
@@ -230,11 +231,11 @@ var rebinner = {
       var
          numDocs = docs.length,
          binWidth = Math.pow(2, binLvL),
-         ephm = {},
+         record = {},
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, thisBinId, prevBinId, record, value;
+         doc_i, bin_i, thisBinId, prevBinId, value;
 
       if (binLvL < 3) {
          //binning level too low, there would be less than 1 record per bin
