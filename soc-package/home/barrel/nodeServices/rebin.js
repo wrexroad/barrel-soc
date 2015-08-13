@@ -35,6 +35,7 @@ var getLatestData = function() {
                      
                      for (binLvl = 1; binLvl <= 16; binLvl++) {
                         docs = rebinner[type](payload, docs, binLvl);
+                        console.log(name, binLvl, (docs || []).length);
                      }
                   });
             }
@@ -51,7 +52,7 @@ var rebinner = {
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, var_i, thisBinId, lastBinId, hkpg;
+         doc_i, bin_i, var_i, thisBinId, prevBinId, record, value;
 
       if (binLvL < 7) {
          //binning level too low, there would be less than 1 record per bin
@@ -62,20 +63,20 @@ var rebinner = {
       }
       
       //set the first value of 'binId' and start an empty document.
-      thisBinId = lastBinId = docs[0]._id - (docs[0]._id % binWidth); 
+      thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
 
       for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
-         hkpg = docs[doc_i].hkpg;
+         record = docs[doc_i].hkpg || {};
          //check for a new bin
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
-         if (thisBinId != lastBinId) {
+         if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
                _id: thisBinId, hkpg: {}
             };
             rebinned[bin_i + 1] = {
                _id: thisBinId + (binWidth / 2), hkpg: {}
             };
-            for (var_i in hkpg) {
+            for (var_i in record) {
                //save the min and the max as two neighboring points
                rebinned[bin_i].hkpg[var_i] = +loVal[var_i];
                rebinned[bin_i + 1].hkpg[var_i] = +hiVal[var_i];
@@ -86,18 +87,19 @@ var rebinner = {
          }
          
          //check for min and max in all hkpg values
-         for (var_i in hkpg) {
-            if (+hkpg[var_i] || hkpg[var_i] === 0) {
-               if (!(loVal[var_i] < hkpg[var_i])) {
-                  loVal[var_i] = hkpg[var_i];
+         for (var_i in record) {
+            value = +record[var_i];
+            if (value || value === 0) {
+               if (!(loVal[var_i] < value)) {
+                  loVal[var_i] = value;
                }
-               if (!(hiVal[var_i] > hkpg[var_i])) {
-                  hiVal[var_i] = hkpg[var_i];
+               if (!(hiVal[var_i] > value)) {
+                  hiVal[var_i] = value;
                }
             }
          } 
       
-         lastBinId = thisBinId;
+         prevBinId = thisBinId;
       }
       
       //pickup the last incomplete bin
@@ -107,7 +109,7 @@ var rebinner = {
       rebinned[bin_i + 1] = {
          _id: thisBinId + (binWidth / 2), hkpg: {}
       };
-      for (var_i in hkpg) {
+      for (var_i in record) {
          rebinned[bin_i].hkpg[var_i] = +loVal[var_i];
          rebinned[bin_i + 1].hkpg[var_i] = +hiVal[var_i];
       }
@@ -122,7 +124,7 @@ var rebinner = {
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, thisBinId, lastBinId;
+         doc_i, bin_i, thisBinId, prevBinId, record, value;
 
       if (binLvL < 3) {
          //binning level too low, there would be less than 1 record per bin
@@ -133,11 +135,11 @@ var rebinner = {
       }
       
       //set the first value of 'binId' and start an empty document.
-      thisBinId = lastBinId = docs[0]._id - (docs[0]._id % binWidth); 
+      thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
 
       for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
-         if (thisBinId != lastBinId) {
+         if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
                _id: thisBinId, rcnt: {}
             };
@@ -162,43 +164,45 @@ var rebinner = {
             bin_i += 2;
          }
          
-         if (+rcnt['0'] || rcnt['0'] === 0) {
-            if (!(loVal['0'] < rcnt['0'])) {
-               loVal['0'] = rcnt['0'];
+         record = docs[doc_i].rcnt || {};
+         value = +record['0'];
+         if (value || value === 0) {
+            if (!(loVal['0'] < value)) {
+               loVal['0'] = value;
             };
-            if (!(hiVal['0'] > rcnt['0'])) {
-               hiVal['0'] = rcnt['0'];
-            };
-         }
-   
-         if (+rcnt['1'] || rcnt['1'] === 0) {
-            if (!(loVal['1'] < rcnt['1'])) {
-               loVal['1'] = rcnt['1'];
-            };
-            if (!(hiVal['1'] > rcnt['1'])) {
-               hiVal['1'] = rcnt['1'];
+            if (!(hiVal['0'] > value)) {
+               hiVal['0'] = value;
             };
          }
-   
-         if (+rcnt['2'] || rcnt['2'] === 0) {
-            if (!(loVal['2'] < rcnt['2'])) {
-               loVal['2'] = rcnt['2'];
+         value = +record['1'];
+         if (value || value === 0) {
+            if (!(loVal['1'] < value)) {
+               loVal['1'] = value;
             };
-            if (!(hiVal['2'] > rcnt['2'])) {
-               hiVal['2'] = rcnt['2'];
+            if (!(hiVal['1'] > value)) {
+               hiVal['1'] = value;
             };
          }
-   
-         if (+rcnt['3'] || rcnt['3'] === 0) {
-            if (!(loVal['3'] < rcnt['3'])) {
-               loVal['3'] = rcnt['3'];
+         value = +record['2'];
+         if (value || value === 0) {
+            if (!(loVal['2'] < value)) {
+               loVal['2'] = value;
             };
-            if (!(hiVal['3'] > rcnt['3'])) {
-               hiVal['3'] = rcnt['3'];
+            if (!(hiVal['2'] > value)) {
+               hiVal['2'] = value;
+            };
+         }
+         value = +record['3'];
+         if (value || value === 0) {
+            if (!(loVal['3'] < value)) {
+               loVal['3'] = value;
+            };
+            if (!(hiVal['3'] > value)) {
+               hiVal['3'] = value;
             };
          }
       
-         lastBinId = thisBinId;
+         prevBinId = thisBinId;
       }
       
       rebinned[bin_i] = {
@@ -230,7 +234,7 @@ var rebinner = {
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, thisBinId, lastBinId;
+         doc_i, bin_i, thisBinId, prevBinId, record, value;
 
       if (binLvL < 3) {
          //binning level too low, there would be less than 1 record per bin
@@ -241,11 +245,11 @@ var rebinner = {
       }
       
       //set the first value of 'binId' and start an empty document.
-      thisBinId = lastBinId = docs[0]._id - (docs[0]._id % binWidth); 
+      thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
 
       for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
-         if (thisBinId != lastBinId) {
+         if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
                _id: thisBinId, ephm: {}
             };
@@ -270,43 +274,45 @@ var rebinner = {
             bin_i += 2;
          }
          
-         if (+ephm['0'] || ephm['0'] === 0) {
-            if (!(loVal['0'] < ephm['0'])) {
-               loVal['0'] = ephm['0'];
+         record = docs[doc_i].ephm || {};
+         value = +record['0'];
+         if (value || value === 0) {
+            if (!(loVal['0'] < value)) {
+               loVal['0'] = value;
             };
-            if (!(hiVal['0'] > ephm['0'])) {
-               hiVal['0'] = ephm['0'];
-            };
-         }
-   
-         if (+ephm['1'] || ephm['1'] === 0) {
-            if (!(loVal['1'] < ephm['1'])) {
-               loVal['1'] = ephm['1'];
-            };
-            if (!(hiVal['1'] > ephm['1'])) {
-               hiVal['1'] = ephm['1'];
+            if (!(hiVal['0'] > value)) {
+               hiVal['0'] = value;
             };
          }
-   
-         if (+ephm['2'] || ephm['2'] === 0) {
-            if (!(loVal['2'] < ephm['2'])) {
-               loVal['2'] = ephm['2'];
+         value = +record['1'];
+         if (value || value === 0) {
+            if (!(loVal['1'] < value)) {
+               loVal['1'] = value;
             };
-            if (!(hiVal['2'] > ephm['2'])) {
-               hiVal['2'] = ephm['2'];
+            if (!(hiVal['1'] > value)) {
+               hiVal['1'] = value;
             };
          }
-   
-         if (+ephm['3'] || ephm['3'] === 0) {
-            if (!(loVal['3'] < ephm['3'])) {
-               loVal['3'] = ephm['3'];
+         value = +record['2'];
+         if (value || value === 0) {
+            if (!(loVal['2'] < value)) {
+               loVal['2'] = value;
             };
-            if (!(hiVal['3'] > ephm['3'])) {
-               hiVal['3'] = ephm['3'];
+            if (!(hiVal['2'] > value)) {
+               hiVal['2'] = value;
+            };
+         }
+         value = +record['3'];
+         if (value || value === 0) {
+            if (!(loVal['3'] < value)) {
+               loVal['3'] = value;
+            };
+            if (!(hiVal['3'] > value)) {
+               hiVal['3'] = value;
             };
          }
       
-         lastBinId = thisBinId;
+         prevBinId = thisBinId;
       }
       
       rebinned[bin_i] = {
@@ -334,10 +340,11 @@ var rebinner = {
       var
          numDocs = docs.length,
          binWidth = Math.pow(2, binLvL),
+         prevFrame = NaN,
          loVal = NaN,
          hiVal = NaN,
          rebinned = [],
-         doc_i, bin_i, thisBinId, lastBinId, pps, fc;
+         doc_i, bin_i, thisBinId, prevBinId, value, fc;
 
       if (binLvL < 2) {
          //binning level too low, there would be less than 1 record per bin
@@ -348,11 +355,11 @@ var rebinner = {
       }
       
       //set the first value of 'binId' and start an empty document.
-      thisBinId = lastBinId = docs[0]._id - (docs[0]._id % binWidth); 
-
+      thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
+      prevFrame = +docs[0].fc;
       for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
-         if (thisBinId != lastBinId) {
+         if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
                _id: thisBinId 
             };
@@ -361,25 +368,25 @@ var rebinner = {
             };
             rebinned[bin_i].pps = +loVal;
             rebinned[bin_i + 1].pps = +hiVal;
-            rebinned[bin_i].fc = docs[lastBinId].fc;
-            rebinned[bin_i + 1].fc = docs[thisBinId].fc;
+            rebinned[bin_i].fc = prevFrame;
+            rebinned[bin_i + 1].fc = +docs[doc_i].fc;
 
             loVal = NaN;
             hiVal = NaN;
             bin_i += 2;
          }
          
-         pps = +docs[lastBinId].pps;
-         if (pps || pps === 0) {
-            if (!(loVal < pps)) {
-               loVal = pps;
+         value = +docs[doc_i].pps;
+         if (value || value === 0) {
+            if (!(loVal < value)) {
+               loVal = value;
             };
-            if (!(hiVal > pps)) {
-               hiVal = pps;
+            if (!(hiVal > value)) {
+               hiVal = value;
             };
          }
    
-         lastBinId = thisBinId;
+         prevBinId = thisBinId;
       }
       
       rebinned[bin_i] = {
@@ -403,7 +410,7 @@ var rebinner = {
    }
 };
 
-var j = schedule.scheduleJob('42 * * * *', function(){
+var j = schedule.scheduleJob('*/1 * * * *', function(){
     console.log('The answer to life, the universe, and everything!');
 });
 
