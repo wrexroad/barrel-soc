@@ -331,10 +331,66 @@ var rebinner = {
       return rebinned;
    },
    misc : function(payload, docs, binLvL) {
-      var rebinned = [];
+      var
+         numDocs = docs.length,
+         binWidth = Math.pow(2, binLvL),
+         loVal = NaN,
+         hiVal = NaN,
+         rebinned = [],
+         doc_i, bin_i, thisBinId, lastBinId, pps, fc;
+
       if (binLvL < 2) {
+         //binning level too low, there would be less than 1 record per bin
          return docs;
       }
+      if (!numDocs) {
+         return null;
+      }
+      
+      //set the first value of 'binId' and start an empty document.
+      thisBinId = lastBinId = docs[0]._id - (docs[0]._id % binWidth); 
+
+      for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
+         thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
+         if (thisBinId != lastBinId) {
+            rebinned[bin_i] = {
+               _id: thisBinId 
+            };
+            rebinned[bin_i + 1] = {
+               _id: thisBinId + (binWidth / 2)
+            };
+            rebinned[bin_i].pps = +loVal;
+            rebinned[bin_i + 1].pps = +hiVal;
+            rebinned[bin_i].fc = docs[lastBinId].fc;
+            rebinned[bin_i + 1].fc = docs[thisBinId].fc;
+
+            loVal = NaN;
+            hiVal = NaN;
+            bin_i += 2;
+         }
+         
+         pps = +docs[lastBinId].pps;
+         if (pps || pps === 0) {
+            if (!(loVal < pps)) {
+               loVal = pps;
+            };
+            if (!(hiVal > pps)) {
+               hiVal = pps;
+            };
+         }
+   
+         lastBinId = thisBinId;
+      }
+      
+      rebinned[bin_i] = {
+         _id: thisBinId
+      };
+      rebinned[bin_i + 1] = {
+         _id: thisBinId + (binWidth / 2)
+      };
+      rebinned[bin_i].pps = +loVal;
+      rebinned[bin_i + 1].pps = +hiVal;
+
       return rebinned;
    },
    magn : function(payload, docs, binLvL) {
