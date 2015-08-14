@@ -7,7 +7,7 @@ use SOC_funcs qw(getCgiInput);
 print "Content-Type: text/html \n\n";
 
 my %input = %{getCgiInput()};
-my $errors = 0;
+my @errors = ();
 my $client = MongoDB::MongoClient->new;
 my $db = $client->get_database('barrel');
 
@@ -24,16 +24,18 @@ if (
    !$input{"apid"} ||
    !$input{"mnemonic"}
 ){
-   printError("Missing Arguments");
-   $errors++;
-} elsif ($input{"binning_factor"} < 0 || $input{"binning_factor"} > 16) {
-   printError("Invalid Binning Level");
-   $errors++;
-} elsif ($input{'pktstarttime'} >= $input{'pktendtime'}) {
-   printError("pktstarttime must be less than pktendtime.");
+   push @errors, "Missing Arguments";
+} 
+if ($input{"binning_factor"} < 0 || $input{"binning_factor"} > 16) {
+   push @errors, "Invalid Binning Level";
+} 
+if ($input{'pktstarttime'} >= $input{'pktendtime'}) {
+   push @errors, "pktstarttime must be less than pktendtime.";
 }
 
-if ($errors == 0) {
+if (@errors > 0) {
+   printErrors();
+} else {
 
 }
 
@@ -42,7 +44,11 @@ if ($input{'jsonp'}) {
    print ')';
 }
 
-sub printError {
+sub printErrors {
+   my $errorString = @errors > 1 ?
+      '["' . join('", "', @errors). '"]':
+      '"' . $errors[0] . '"';
+   
    print '"meta": {';
    print '"req_id": "'.$input{'req_id'}.'", ';
    print '"object": "'.$input{'object'}.'", ';
@@ -50,6 +56,6 @@ sub printError {
    print '"mnemonic": "'.$input{'mnemonic'}.'", ';
    print '"binning_factor": "'.$input{'binning_factor'}.'", ';
    print '"last_insert": "'.$input{'last_insert'}.'", ';
-   print '"error": "'.$_[0].'"';
+   print '"error": "' . $errorString . '"';
    print '}';
 }
