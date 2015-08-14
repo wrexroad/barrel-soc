@@ -119,6 +119,7 @@ var rebinner = {
             loVal = {};
             hiVal = {};
             bin_i += 2;
+            prevBinId = thisBinId;
          }
          
          //check for min and max in all hkpg values
@@ -133,8 +134,6 @@ var rebinner = {
                }
             }
          } 
-      
-         prevBinId = thisBinId;
       }
       
       //pickup the last incomplete bin
@@ -197,6 +196,7 @@ var rebinner = {
             loVal = {};
             hiVal = {};
             bin_i += 2;
+            prevBinId = thisBinId;
          }
          
          record = docs[doc_i].rcnt || {};
@@ -236,8 +236,6 @@ var rebinner = {
                hiVal['3'] = value;
             };
          }
-      
-         prevBinId = thisBinId;
       }
       
       rebinned[bin_i] = {
@@ -307,6 +305,7 @@ var rebinner = {
             loVal = {};
             hiVal = {};
             bin_i += 2;
+            prevBinId = thisBinId;
          }
          
          record = docs[doc_i].ephm || {};
@@ -346,8 +345,6 @@ var rebinner = {
                hiVal['3'] = value;
             };
          }
-      
-         prevBinId = thisBinId;
       }
       
       rebinned[bin_i] = {
@@ -409,6 +406,7 @@ var rebinner = {
             loVal = NaN;
             hiVal = NaN;
             bin_i += 2;
+            prevBinId = thisBinId;
          }
          
          value = +docs[doc_i].pps;
@@ -420,8 +418,6 @@ var rebinner = {
                hiVal = value;
             };
          }
-   
-         prevBinId = thisBinId;
       }
       
       rebinned[bin_i] = {
@@ -481,6 +477,7 @@ var rebinner = {
             loVal = {};
             hiVal = {};
             bin_i += 2;
+            prevBinId = thisBinId;
          }
          
          for (var_i = 0; var_i < record.length; var_i++) {
@@ -494,8 +491,6 @@ var rebinner = {
                };
             }
          }
-   
-         prevBinId = thisBinId;
       }
       
       rebinned[bin_i] = {
@@ -557,6 +552,7 @@ var rebinner = {
             loVal = {};
             hiVal = {};
             bin_i += 2;
+            prevBinId = thisBinId;
          }
          
          for (var_i = 0; var_i < record.length; var_i++) {
