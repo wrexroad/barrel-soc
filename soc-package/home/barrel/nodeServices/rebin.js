@@ -101,52 +101,51 @@ var rebinner = {
       thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
 
       for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
-         record = docs[doc_i].hkpg || {};
-         //check for a new bin
+         for (var_i = 0; var_i < 40; var_i++) {
+            record['hkpg' + var_i] = +docs[doc_i]['hkpg' + var_i];
+         };
+
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: prevBinId, hkpg: {}
+               _id: prevBinId, gps: {}
             };
             rebinned[bin_i + 1] = {
-               _id: prevBinId + (binWidth / 2), hkpg: {}
+               _id: prevBinId + (binWidth / 2), gps: {}
             };
-
             for (var_i in record) {
-               //save the min and the max as two neighboring points
-               rebinned[bin_i].hkpg[var_i] = +loVal[var_i];
-               rebinned[bin_i + 1].hkpg[var_i] = +hiVal[var_i];
+               rebinned[bin_i][var_i] = +loVal[var_i];
+               rebinned[bin_i+ 1][var_i] = +hiVal[var_i];
             }
+
             loVal = {};
             hiVal = {};
             bin_i += 2;
             prevBinId = thisBinId;
          }
          
-         //check for min and max in all hkpg values
          for (var_i in record) {
-            value = +record[var_i];
+            value = record[var_i];
             if (value || value === 0) {
                if (!(loVal[var_i] < value)) {
                   loVal[var_i] = value;
-               }
+               };
                if (!(hiVal[var_i] > value)) {
                   hiVal[var_i] = value;
-               }
+               };
             }
-         } 
+         }
       }
       
-      //pickup the last incomplete bin
       rebinned[bin_i] = {
-         _id: thisBinId, hkpg: {}
+         _id: thisBinId, gps: {}
       };
       rebinned[bin_i + 1] = {
-         _id: thisBinId + (binWidth / 2), hkpg: {}
+         _id: thisBinId + (binWidth / 2), gps: {}
       };
       for (var_i in record) {
-         rebinned[bin_i].hkpg[var_i] = +loVal[var_i];
-         rebinned[bin_i + 1].hkpg[var_i] = +hiVal[var_i];
+         rebinned[bin_i][var_i] = +loVal[var_i];
+         rebinned[bin_i+ 1][var_i] = +hiVal[var_i];
       }
 
       return rebinned;
@@ -159,7 +158,7 @@ var rebinner = {
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, thisBinId, prevBinId, value;
+         doc_i, bin_i, thisBinId, prevBinId, value, var_i;
 
       if (binLvL < 3) {
          //binning level too low, there would be less than 1 record per bin
@@ -173,26 +172,26 @@ var rebinner = {
       thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
 
       for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
+
+         record = {
+            rcnt0: +docs[doc_i].rcnt0,
+            rcnt1: +docs[doc_i].rcnt1,
+            rcnt2: +docs[doc_i].rcnt2,
+            rcnt3: +docs[doc_i].rcnt3
+         };
+
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: prevBinId, rcnt: {}
+               _id: prevBinId, gps: {}
             };
             rebinned[bin_i + 1] = {
-               _id: prevBinId + (binWidth / 2), rcnt: {}
+               _id: prevBinId + (binWidth / 2), gps: {}
             };
-            rebinned[bin_i].rcnt = {
-               '0' : +loVal['0'],
-               '1' : +loVal['1'],
-               '2' : +loVal['2'],
-               '3' : +loVal['3']
-            };
-            rebinned[bin_i + 1].rcnt = {
-               '0' : +hiVal['0'],
-               '1' : +hiVal['1'],
-               '2' : +hiVal['2'],
-               '3' : +hiVal['3']
-            };
+            for (var_i in record) {
+               rebinned[bin_i][var_i] = +loVal[var_i];
+               rebinned[bin_i+ 1][var_i] = +hiVal[var_i];
+            }
 
             loVal = {};
             hiVal = {};
@@ -200,63 +199,29 @@ var rebinner = {
             prevBinId = thisBinId;
          }
          
-         record = docs[doc_i].rcnt || {};
-         value = +record['0'];
-         if (value || value === 0) {
-            if (!(loVal['0'] < value)) {
-               loVal['0'] = value;
-            };
-            if (!(hiVal['0'] > value)) {
-               hiVal['0'] = value;
-            };
-         }
-         value = +record['1'];
-         if (value || value === 0) {
-            if (!(loVal['1'] < value)) {
-               loVal['1'] = value;
-            };
-            if (!(hiVal['1'] > value)) {
-               hiVal['1'] = value;
-            };
-         }
-         value = +record['2'];
-         if (value || value === 0) {
-            if (!(loVal['2'] < value)) {
-               loVal['2'] = value;
-            };
-            if (!(hiVal['2'] > value)) {
-               hiVal['2'] = value;
-            };
-         }
-         value = +record['3'];
-         if (value || value === 0) {
-            if (!(loVal['3'] < value)) {
-               loVal['3'] = value;
-            };
-            if (!(hiVal['3'] > value)) {
-               hiVal['3'] = value;
-            };
+         for (var_i in record) {
+            value = record[var_i];
+            if (value || value === 0) {
+               if (!(loVal[var_i] < value)) {
+                  loVal[var_i] = value;
+               };
+               if (!(hiVal[var_i] > value)) {
+                  hiVal[var_i] = value;
+               };
+            }
          }
       }
       
       rebinned[bin_i] = {
-         _id: thisBinId, rcnt: {}
+         _id: thisBinId, gps: {}
       };
       rebinned[bin_i + 1] = {
-         _id: thisBinId + (binWidth / 2), rcnt: {}
+         _id: thisBinId + (binWidth / 2), gps: {}
       };
-      rebinned[bin_i].rcnt = {
-         '0' : +loVal['0'],
-         '1' : +loVal['1'],
-         '2' : +loVal['2'],
-         '3' : +loVal['3']
-      };
-      rebinned[bin_i + 1].rcnt = {
-         '0' : +hiVal['0'],
-         '1' : +hiVal['1'],
-         '2' : +hiVal['2'],
-         '3' : +hiVal['3']
-      };
+      for (var_i in record) {
+         rebinned[bin_i][var_i] = +loVal[var_i];
+         rebinned[bin_i+ 1][var_i] = +hiVal[var_i];
+      }
 
       return rebinned;
    },
@@ -268,7 +233,7 @@ var rebinner = {
          loVal = {},
          hiVal = {},
          rebinned = [],
-         doc_i, bin_i, thisBinId, prevBinId, value;
+         doc_i, bin_i, thisBinId, prevBinId, value, var_i;
 
       if (binLvL < 3) {
          //binning level too low, there would be less than 1 record per bin
@@ -282,6 +247,13 @@ var rebinner = {
       thisBinId = prevBinId = docs[0]._id - (docs[0]._id % binWidth); 
 
       for (doc_i = 0, bin_i = 0; doc_i < numDocs; doc_i++) {
+         record = {
+            ephm0: +docs[doc_i].ephm0,
+            ephm1: +docs[doc_i].ephm1,
+            ephm2: +docs[doc_i].ephm2,
+            ephm3: +docs[doc_i].ephm3
+         };
+
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
@@ -290,18 +262,10 @@ var rebinner = {
             rebinned[bin_i + 1] = {
                _id: prevBinId + (binWidth / 2), gps: {}
             };
-            rebinned[bin_i].gps = {
-               '0' : +loVal['0'],
-               '1' : +loVal['1'],
-               '2' : +loVal['2'],
-               '3' : +loVal['3']
-            };
-            rebinned[bin_i + 1].gps = {
-               '0' : +hiVal['0'],
-               '1' : +hiVal['1'],
-               '2' : +hiVal['2'],
-               '3' : +hiVal['3']
-            };
+            for (var_i in record) {
+               rebinned[bin_i][var_i] = +loVal[var_i];
+               rebinned[bin_i+ 1][var_i] = +hiVal[var_i];
+            }
 
             loVal = {};
             hiVal = {};
@@ -309,42 +273,16 @@ var rebinner = {
             prevBinId = thisBinId;
          }
          
-         record = docs[doc_i].gps || {};
-         value = +record['0'];
-         if (value || value === 0) {
-            if (!(loVal['0'] < value)) {
-               loVal['0'] = value;
-            };
-            if (!(hiVal['0'] > value)) {
-               hiVal['0'] = value;
-            };
-         }
-         value = +record['1'];
-         if (value || value === 0) {
-            if (!(loVal['1'] < value)) {
-               loVal['1'] = value;
-            };
-            if (!(hiVal['1'] > value)) {
-               hiVal['1'] = value;
-            };
-         }
-         value = +record['2'];
-         if (value || value === 0) {
-            if (!(loVal['2'] < value)) {
-               loVal['2'] = value;
-            };
-            if (!(hiVal['2'] > value)) {
-               hiVal['2'] = value;
-            };
-         }
-         value = +record['3'];
-         if (value || value === 0) {
-            if (!(loVal['3'] < value)) {
-               loVal['3'] = value;
-            };
-            if (!(hiVal['3'] > value)) {
-               hiVal['3'] = value;
-            };
+         for (var_i in record) {
+            value = record[var_i];
+            if (value || value === 0) {
+               if (!(loVal[var_i] < value)) {
+                  loVal[var_i] = value;
+               };
+               if (!(hiVal[var_i] > value)) {
+                  hiVal[var_i] = value;
+               };
+            }
          }
       }
       
@@ -354,18 +292,10 @@ var rebinner = {
       rebinned[bin_i + 1] = {
          _id: thisBinId + (binWidth / 2), gps: {}
       };
-      rebinned[bin_i].gps = {
-         '0' : +loVal['0'],
-         '1' : +loVal['1'],
-         '2' : +loVal['2'],
-         '3' : +loVal['3']
-      };
-      rebinned[bin_i + 1].gps = {
-         '0' : +hiVal['0'],
-         '1' : +hiVal['1'],
-         '2' : +hiVal['2'],
-         '3' : +hiVal['3']
-      };
+      for (var_i in record) {
+         rebinned[bin_i][var_i] = +loVal[var_i];
+         rebinned[bin_i+ 1][var_i] = +hiVal[var_i];
+      }
 
       return rebinned;
    },
@@ -581,4 +511,5 @@ var rebinner = {
 var j = schedule.scheduleJob('*/1 * * * *', function() {
    getLatestData();
 });
+   getLatestData();
 
