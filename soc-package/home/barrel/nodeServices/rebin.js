@@ -285,18 +285,18 @@ var rebinner = {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: prevBinId, ephm: {}
+               _id: prevBinId, gps: {}
             };
             rebinned[bin_i + 1] = {
-               _id: prevBinId + (binWidth / 2), ephm: {}
+               _id: prevBinId + (binWidth / 2), gps: {}
             };
-            rebinned[bin_i].ephm = {
+            rebinned[bin_i].gps = {
                '0' : +loVal['0'],
                '1' : +loVal['1'],
                '2' : +loVal['2'],
                '3' : +loVal['3']
             };
-            rebinned[bin_i + 1].ephm = {
+            rebinned[bin_i + 1].gps = {
                '0' : +hiVal['0'],
                '1' : +hiVal['1'],
                '2' : +hiVal['2'],
@@ -309,7 +309,7 @@ var rebinner = {
             prevBinId = thisBinId;
          }
          
-         record = docs[doc_i].ephm || {};
+         record = docs[doc_i].gps || {};
          value = +record['0'];
          if (value || value === 0) {
             if (!(loVal['0'] < value)) {
@@ -349,18 +349,18 @@ var rebinner = {
       }
       
       rebinned[bin_i] = {
-         _id: thisBinId, ephm: {}
+         _id: thisBinId, gps: {}
       };
       rebinned[bin_i + 1] = {
-         _id: thisBinId + (binWidth / 2), ephm: {}
+         _id: thisBinId + (binWidth / 2), gps: {}
       };
-      rebinned[bin_i].ephm = {
+      rebinned[bin_i].gps = {
          '0' : +loVal['0'],
          '1' : +loVal['1'],
          '2' : +loVal['2'],
          '3' : +loVal['3']
       };
-      rebinned[bin_i + 1].ephm = {
+      rebinned[bin_i + 1].gps = {
          '0' : +hiVal['0'],
          '1' : +hiVal['1'],
          '2' : +hiVal['2'],
