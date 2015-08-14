@@ -106,11 +106,12 @@ var rebinner = {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: thisBinId, hkpg: {}
+               _id: prevBinId, hkpg: {}
             };
             rebinned[bin_i + 1] = {
-               _id: thisBinId + (binWidth / 2), hkpg: {}
+               _id: prevBinId + (binWidth / 2), hkpg: {}
             };
+
             for (var_i in record) {
                //save the min and the max as two neighboring points
                rebinned[bin_i].hkpg[var_i] = +loVal[var_i];
@@ -175,10 +176,10 @@ var rebinner = {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: thisBinId, rcnt: {}
+               _id: prevBinId, rcnt: {}
             };
             rebinned[bin_i + 1] = {
-               _id: thisBinId + (binWidth / 2), rcnt: {}
+               _id: prevBinId + (binWidth / 2), rcnt: {}
             };
             rebinned[bin_i].rcnt = {
                '0' : +loVal['0'],
@@ -284,10 +285,10 @@ var rebinner = {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: thisBinId, ephm: {}
+               _id: prevBinId, ephm: {}
             };
             rebinned[bin_i + 1] = {
-               _id: thisBinId + (binWidth / 2), ephm: {}
+               _id: prevBinId + (binWidth / 2), ephm: {}
             };
             rebinned[bin_i].ephm = {
                '0' : +loVal['0'],
@@ -393,10 +394,10 @@ var rebinner = {
          thisBinId = docs[doc_i]._id - (docs[doc_i]._id % binWidth);
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: thisBinId 
+               _id: prevBinId 
             };
             rebinned[bin_i + 1] = {
-               _id: thisBinId + (binWidth / 2)
+               _id: prevBinId + (binWidth / 2)
             };
             rebinned[bin_i].pps = +loVal;
             rebinned[bin_i + 1].pps = +hiVal;
@@ -464,10 +465,10 @@ var rebinner = {
  
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: thisBinId 
+               _id: prevBinId 
             };
             rebinned[bin_i + 1] = {
-               _id: thisBinId + (binWidth / 2)
+               _id: prevBinId + (binWidth / 2)
             };
             for (var_i = 0; var_i < record.length; var_i++) {
                rebinned[bin_i][var_i] = +loVal[var_i];
@@ -539,10 +540,10 @@ var rebinner = {
  
          if (thisBinId != prevBinId) {
             rebinned[bin_i] = {
-               _id: thisBinId 
+               _id: prevBinId 
             };
             rebinned[bin_i + 1] = {
-               _id: thisBinId + (binWidth / 2)
+               _id: prevBinId + (binWidth / 2)
             };
             for (var_i = 0; var_i < record.length; var_i++) {
                rebinned[bin_i][var_i] = +loVal[var_i];
