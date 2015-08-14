@@ -442,10 +442,6 @@ var rebinner = {
          rebinned = [],
          var_i, doc_i, bin_i, thisBinId, prevBinId, value;
 
-      if (binLvL < 2) {
-         //binning level too low, there would be less than 1 record per bin
-         return docs;
-      }
       if (!numDocs) {
          return null;
       }
@@ -470,7 +466,7 @@ var rebinner = {
             rebinned[bin_i + 1] = {
                _id: prevBinId + (binWidth / 2)
             };
-            for (var_i = 0; var_i < record.length; var_i++) {
+            for (var_i in record) {
                rebinned[bin_i][var_i] = +loVal[var_i];
                rebinned[bin_i + 1][var_i] = +hiVal[var_i];
             }
@@ -481,7 +477,7 @@ var rebinner = {
             prevBinId = thisBinId;
          }
          
-         for (var_i = 0; var_i < record.length; var_i++) {
+         for (var_i in record) {
             value = record[var_i];
             if (value || value === 0) {
                if (!(loVal[var_i] < value)) {
@@ -500,7 +496,7 @@ var rebinner = {
       rebinned[bin_i + 1] = {
          _id: thisBinId + (binWidth / 2)
       };
-      for (var_i = 0; var_i < record.length; var_i++) {
+      for (var_i in record) {
          rebinned[bin_i][var_i] = +loVal[var_i];
          rebinned[bin_i + 1][var_i] = +hiVal[var_i];
       }
@@ -517,10 +513,6 @@ var rebinner = {
          rebinned = [],
          var_i, doc_i, bin_i, thisBinId, prevBinId, value;
 
-      if (binLvL < 2) {
-         //binning level too low, there would be less than 1 record per bin
-         return docs;
-      }
       if (!numDocs) {
          return null;
       }
@@ -545,7 +537,7 @@ var rebinner = {
             rebinned[bin_i + 1] = {
                _id: prevBinId + (binWidth / 2)
             };
-            for (var_i = 0; var_i < record.length; var_i++) {
+            for (var_i in record) {
                rebinned[bin_i][var_i] = +loVal[var_i];
                rebinned[bin_i + 1][var_i] = +hiVal[var_i];
             }
@@ -556,7 +548,7 @@ var rebinner = {
             prevBinId = thisBinId;
          }
          
-         for (var_i = 0; var_i < record.length; var_i++) {
+         for (var_i in record) {
             value = record[var_i];
             if (value || value === 0) {
                if (!(loVal[var_i] < value)) {
@@ -577,7 +569,7 @@ var rebinner = {
       rebinned[bin_i + 1] = {
          _id: thisBinId + (binWidth / 2)
       };
-      for (var_i = 0; var_i < record.length; var_i++) {
+      for (var_i in record) {
          rebinned[bin_i][var_i] = +loVal[var_i];
          rebinned[bin_i + 1][var_i] = +hiVal[var_i];
       }
