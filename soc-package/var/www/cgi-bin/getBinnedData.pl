@@ -54,7 +54,9 @@ if ($input{'jsonp'}) {
 }
 
 sub printData {
-   my $cursor = $collection->find();
+   my $cursor = $collection->find({
+      '_id' => {'$gte' => $input{'pktstarttime'}, '$lte' => $input{'pktendtime'}}
+   });
    my @timeStamps = ();
    my @data = ();
    while (my $doc = $cursor->next){ 
@@ -62,8 +64,8 @@ sub printData {
       push @data, ${$doc}{$input{'mnemonic'}};
    }
    print '"data" : [';
-   print '"["' . join('", "', @timeStamps) . '"], ';
-   print '"["' . join('", "', @data) . '"]';
+   print '["' . join('", "', @timeStamps) . '"], ';
+   print '["' . join('", "', @data) . '"]';
    print '],';
 }
 
