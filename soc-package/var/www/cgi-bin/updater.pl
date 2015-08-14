@@ -1172,17 +1172,14 @@ sub completeFrame{
          {"_id" => $time1 + (0.25 * $sample_i)},
          {
             "\$set" => {
-               "Bx" => 
-                  [$newData{'bx1'}, $newData{'bx2'}, $newData{'bx3'}, $newData{'bx4'}],
-               "By" =>
-                  [$newData{'by1'}, $newData{'by2'}, $newData{'by3'}, $newData{'by4'}],
-               "Bz" =>
-                  [$newData{'bz1'}, $newData{'bz2'}, $newData{'bz3'}, $newData{'bz4'}],
+               "Bx" => $newData{'bx'.$sample_i},
+               "By" => $newData{'by'.$sample_i},
+               "Bz" => $newData{'bz'.$sample_i},
                "magB" =>
                   sqrt(
-                     $newData{'bx'} * $newData{'bx'} +
-                     $newData{'by'} * $newData{'by'} +
-                     $newData{'bz'} * $newData{'bz'}
+                     $newData{'bx'.$sample_i} * $newData{'bx'.$sample_i} +
+                     $newData{'by'.$sample_i} * $newData{'by'.$sample_i} +
+                     $newData{'bz'.$sample_i} * $newData{'bz'.$sample_i}
                   )
             },
             "\$setOnInsert" => {
