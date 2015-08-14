@@ -1238,7 +1238,7 @@ sub completeFrame{
       {"_id" => $time4},
       {
          "\$set" => {
-            "rcnt.".$modIndex{"4"} => $newData{'rc'}[$modIndex{"4"}]
+            "rcnt".$modIndex{"4"} => $newData{'rc'}[$modIndex{"4"}]
          },
          "\$setOnInsert" => {
             "_id" => $time4
@@ -1250,7 +1250,7 @@ sub completeFrame{
       {"_id" => $time4},
       {
          "\$set" => {
-            "gps.".$modIndex{"4"} => $newData{'gps'}[$modIndex{"4"}]
+            "ephm".$modIndex{"4"} => $newData{'gps'}[$modIndex{"4"}]
          },
          "\$setOnInsert" => {
             "_id" => $time4
@@ -1262,7 +1262,7 @@ sub completeFrame{
       {"_id" => $time40},
       {
          "\$set" => {
-            "hkpg.".$modIndex{"40"} => $newData{'hk'}[$modIndex{"40"}]
+            "hkpg".$modIndex{"40"} => $newData{'hk'}[$modIndex{"40"}]
          },
          "\$setOnInsert" => {
             "_id" => $time40
