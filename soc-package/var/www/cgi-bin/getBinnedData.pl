@@ -88,5 +88,5 @@ sub printErrors {
       '["' . join('", "', @errors). '"]':
       '"' . $errors[0] . '"';
    
-   print ', "error": "' . $errorString . '"';
+   print ', "error": ' . $errorString;
 }
