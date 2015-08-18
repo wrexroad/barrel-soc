@@ -4,7 +4,7 @@ use MongoDB;
 use MongoDB::OID;
 use SOC_funcs qw(getCgiInput);
 
-print "Content-Type: text/html \n\n";
+print "Content-Type: application/json \n\n";
 
 my %input = %{getCgiInput()};
 my @errors = ();
