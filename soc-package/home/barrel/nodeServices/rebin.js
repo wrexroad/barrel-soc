@@ -1,4 +1,3 @@
-var schedule = require('node-schedule');
 var assert = require('assert')
 var MongoClient = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectID;
@@ -94,7 +93,7 @@ var rebinner = {
          return docs;
       }
       if (!numDocs) {
-         return null;
+         return docs;
       }
       
       //set the first value of 'binId' and start an empty document.
@@ -165,7 +164,7 @@ var rebinner = {
          return docs;
       }
       if (!numDocs) {
-         return null;
+         return docs;
       }
       
       //set the first value of 'binId' and start an empty document.
@@ -240,7 +239,7 @@ var rebinner = {
          return docs;
       }
       if (!numDocs) {
-         return null;
+         return docs;
       }
       
       //set the first value of 'binId' and start an empty document.
@@ -314,7 +313,7 @@ var rebinner = {
          return docs;
       }
       if (!numDocs) {
-         return null;
+         return docs;
       }
       
       //set the first value of 'binId' and start an empty document.
@@ -373,7 +372,7 @@ var rebinner = {
          var_i, doc_i, bin_i, thisBinId, prevBinId, value;
 
       if (!numDocs) {
-         return null;
+         return docs;
       }
       
       //set the first value of 'binId' and start an empty document.
@@ -444,7 +443,7 @@ var rebinner = {
          var_i, doc_i, bin_i, thisBinId, prevBinId, value;
 
       if (!numDocs) {
-         return null;
+         return docs;
       }
       
       //set the first value of 'binId' and start an empty document.
@@ -508,8 +507,4 @@ var rebinner = {
    }
 };
 
-var j = schedule.scheduleJob('*/1 * * * *', function() {
-   getLatestData();
-});
-   getLatestData();
-
+getLatestData();
