@@ -34,7 +34,7 @@ if ($input{'pktstarttime'} >= $input{'pktendtime'}) {
    push @errors, "pktstarttime must be less than pktendtime.";
 }
 
-$collectionName = $input{'apid'}.$input{'object'};
+$collectionName = $input{'apid'}.(substr $input{'object'}, -2);
 if ($input{'binning_factor'}) {
    $collectionName .= '.'.$input{'binning_factor'};
 }
